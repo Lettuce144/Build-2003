@@ -6420,30 +6420,44 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		EquipSuit();
 
 		// Give the player everything!
-		GiveAmmo( 255,	"Pistol");
-		GiveAmmo( 255,	"AR2");
-		GiveAmmo( 5,	"AR2AltFire");
-		GiveAmmo( 255,	"SMG1");
-		GiveAmmo( 255,	"Buckshot");
-		GiveAmmo( 3,	"smg1_grenade");
-		GiveAmmo( 3,	"rpg_round");
-		GiveAmmo( 5,	"grenade");
-		GiveAmmo( 32,	"357" );
-		GiveAmmo( 16,	"XBowBolt" );
-#ifdef HL2_EPISODIC
-		GiveAmmo( 5,	"Hopwire" );
-#endif		
-		GiveNamedItem( "weapon_smg1" );
-		GiveNamedItem( "weapon_frag" );
-		GiveNamedItem( "weapon_crowbar" );
-		GiveNamedItem( "weapon_pistol" );
-		GiveNamedItem( "weapon_ar2" );
-		GiveNamedItem( "weapon_shotgun" );
-		GiveNamedItem( "weapon_physcannon" );
-		GiveNamedItem( "weapon_bugbait" );
-		GiveNamedItem( "weapon_rpg" );
-		GiveNamedItem( "weapon_357" );
-		GiveNamedItem( "weapon_crossbow" );
+		GiveAmmo(255, "Pistol");
+		GiveAmmo(255, "AR2");
+		GiveAmmo(5, "AR2AltFire");
+		GiveAmmo(255, "SMG1");
+		GiveAmmo(255, "Buckshot");
+		GiveAmmo(3, "smg1_grenade");
+		GiveAmmo(3, "rpg_round");
+		GiveAmmo(5, "grenade");
+		GiveAmmo(32, "357");
+		GiveAmmo(16, "XBowBolt");
+		GiveAmmo(10, "slamammo");
+
+		GiveAmmo(5, "Hopwire");
+		GiveNamedItem("weapon_smg1");
+		GiveNamedItem("weapon_frag");
+		GiveNamedItem("weapon_slam");
+		GiveNamedItem("weapon_immolator");
+		GiveNamedItem("weapon_crowbar");
+		GiveNamedItem("weapon_pistol");
+		GiveNamedItem("weapon_ar2");
+		GiveNamedItem("weapon_ar1");
+		GiveNamedItem("weapon_shotgun");
+		GiveNamedItem("weapon_physcannon");
+		GiveNamedItem("weapon_bugbait");
+		GiveNamedItem("weapon_hopwire");
+		GiveNamedItem("weapon_stunstick");
+		GiveNamedItem("weapon_binoculars");
+		GiveNamedItem("weapon_gauss");
+		GiveNamedItem("weapon_smg2");
+		GiveNamedItem("weapon_immolator");
+		GiveNamedItem("weapon_brickbat");
+		GiveNamedItem("weapon_hmg1");
+		GiveNamedItem("weapon_sniperrifle");
+		GiveNamedItem("weapon_iceaxe");
+		GiveNamedItem("weapon_physgun");
+		GiveNamedItem("weapon_rpg");
+		//GiveNamedItem( "weapon_357" );
+		//GiveNamedItem( "weapon_crossbow" );
 #ifdef HL2_EPISODIC
 		// GiveNamedItem( "weapon_magnade" );
 #endif

@@ -445,6 +445,7 @@ enum PLAYER_ANIM
 
 // TODO: keep this up to date so all the mod-specific flags don't overlap anything.
 #define DMG_LASTGENERICFLAG	DMG_BUCKSHOT
+#define DMG_PHYSICSGUN DMG_LASTGENERICFLAG
 
 
 
