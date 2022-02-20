@@ -269,6 +269,7 @@ void C_FireSmoke::SpawnSmoke( void )
 
 IMPLEMENT_CLIENTCLASS_DT( C_EntityFlame, DT_EntityFlame, CEntityFlame )
 	RecvPropEHandle(RECVINFO(m_hEntAttached)),
+	RecvPropBool(RECVINFO(m_bIsGreen)),
 END_RECV_TABLE()
 
 //-----------------------------------------------------------------------------
@@ -335,7 +336,12 @@ void C_EntityFlame::CreateEffect( void )
 #ifdef TF_CLIENT_DLL
 	m_hEffect = ParticleProp()->Create( "burningplayer_red", PATTACH_ABSORIGIN_FOLLOW );
 #else
-	m_hEffect = ParticleProp()->Create( "burning_character", PATTACH_ABSORIGIN_FOLLOW );
+	if (m_bIsGreen) {
+		m_hEffect = ParticleProp()->Create("burning_character_immo", PATTACH_ABSORIGIN_FOLLOW);
+	}
+	else {
+		m_hEffect = ParticleProp()->Create("burning_character", PATTACH_ABSORIGIN_FOLLOW);
+	}
 #endif
 
 	if ( m_hEffect )

@@ -23,6 +23,7 @@ BEGIN_DATADESC( CEntityFlame )
 	DEFINE_KEYFIELD( m_flLifetime, FIELD_FLOAT, "lifetime" ),
 
 	DEFINE_FIELD( m_flSize, FIELD_FLOAT ),
+	DEFINE_FIELD( m_bIsGreen, FIELD_BOOLEAN),
 	DEFINE_FIELD( m_hEntAttached, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_bUseHitboxes, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_iNumHitboxFires, FIELD_INTEGER ),
@@ -38,6 +39,7 @@ END_DATADESC()
 
 IMPLEMENT_SERVERCLASS_ST( CEntityFlame, DT_EntityFlame )
 	SendPropEHandle( SENDINFO( m_hEntAttached ) ),
+	SendPropBool(SENDINFO(m_bIsGreen)),
 END_SEND_TABLE()
 
 LINK_ENTITY_TO_CLASS( entityflame, CEntityFlame );
@@ -133,6 +135,7 @@ CEntityFlame *CEntityFlame::Create( CBaseEntity *pTarget, bool useHitboxes )
 
 	UTIL_SetOrigin( pFlame, pTarget->GetAbsOrigin() );
 
+	pFlame->m_bIsGreen = false;
 	pFlame->m_flSize = size;
 	pFlame->SetThink( &CEntityFlame::FlameThink );
 	pFlame->SetNextThink( gpGlobals->curtime + 0.1f );
@@ -144,6 +147,41 @@ CEntityFlame *CEntityFlame::Create( CBaseEntity *pTarget, bool useHitboxes )
 	pFlame->AddEFlags( EFL_FORCE_CHECK_TRANSMIT );
 
 	pFlame->SetUseHitboxes( useHitboxes );
+
+	return pFlame;
+}
+
+CEntityFlame* CEntityFlame::CreateGreen(CBaseEntity* pTarget, bool useHitboxes)
+{
+	CEntityFlame* pFlame = (CEntityFlame*)CreateEntityByName("entityflame");
+
+	if (pFlame == NULL)
+		return NULL;
+
+	float xSize = pTarget->CollisionProp()->OBBMaxs().x - pTarget->CollisionProp()->OBBMins().x;
+	float ySize = pTarget->CollisionProp()->OBBMaxs().y - pTarget->CollisionProp()->OBBMins().y;
+
+	float size = (xSize + ySize) * 0.5f;
+
+	if (size < 16.0f)
+	{
+		size = 16.0f;
+	}
+
+	UTIL_SetOrigin(pFlame, pTarget->GetAbsOrigin());
+
+	pFlame->m_bIsGreen = true;
+	pFlame->m_flSize = size;
+	pFlame->SetThink(&CEntityFlame::FlameThink);
+	pFlame->SetNextThink(gpGlobals->curtime + 0.1f);
+
+	pFlame->AttachToEntity(pTarget);
+	pFlame->SetLifetime(2.0f);
+
+	//Send to the client even though we don't have a model
+	pFlame->AddEFlags(EFL_FORCE_CHECK_TRANSMIT);
+
+	pFlame->SetUseHitboxes(useHitboxes);
 
 	return pFlame;
 }

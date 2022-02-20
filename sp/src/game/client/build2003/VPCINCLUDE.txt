@@ -1,0 +1,6 @@
+			$File	"build2003\c_npc_hydra.cpp"
+			$File	"build2003\c_weapon_ar2.cpp"
+			$File	"build2003\c_weapon_gravitygun.cpp"
+			$File	"build2003\c_weapon_hopwire.cpp"
+			$File	"build2003\c_weapon_stickylauncher.cpp"
+			$File	"build2003\main.py"

@@ -318,6 +318,9 @@ public:
 	// Fire
 	virtual void Ignite( float flFlameLifetime, bool bNPCOnly = true, float flSize = 0.0f, bool bCalledByLevelDesigner = false );
 	virtual void IgniteLifetime( float flFlameLifetime );
+	virtual void IgniteGreen(float flFlameLifetime, bool bNPCOnly = true, float flSize = 0.0f, bool bCalledByLevelDesigner = false);
+	virtual void IgniteLifetimeGreen(float flFlameLifetime);
+	bool IsOnGreenFire() { return ((GetFlags() & FL_ONFIREGREEN) != 0); }
 	virtual void IgniteNumHitboxFires( int iNumHitBoxFires );
 	virtual void IgniteHitboxFireScale( float flHitboxFireScale );
 	virtual void Extinguish() { RemoveFlag( FL_ONFIRE ); }

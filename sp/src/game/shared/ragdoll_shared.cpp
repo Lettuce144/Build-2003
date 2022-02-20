@@ -1246,6 +1246,12 @@ C_EntityFlame *FireEffect( C_BaseAnimating *pTarget, C_BaseEntity *pServerFire, 
 		pFire->SetParent( pTarget );
 		pFire->m_hEntAttached = (C_BaseEntity *) pTarget;
 
+		C_EntityFlame* pOldFire = dynamic_cast<C_EntityFlame*>(pServerFire);
+		if (pOldFire)
+		{
+			pFire->m_bIsGreen = pOldFire->m_bIsGreen;
+		}
+
 		pFire->OnDataChanged( DATA_UPDATE_CREATED );
 		pFire->SetAbsOrigin( pTarget->GetAbsOrigin() );
 

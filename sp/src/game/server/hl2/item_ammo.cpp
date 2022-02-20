@@ -242,12 +242,12 @@ public:
 	void Spawn( void )
 	{ 
 		Precache( );
-		SetModel( "models/items/combine_rifle_cartridge01.mdl");
+		SetModel("models/items/ammo_ar2.mdl");
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
 	{
-		PrecacheModel ("models/items/combine_rifle_cartridge01.mdl");
+		PrecacheModel("models/items/ammo_ar2.mdl");
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
@@ -439,6 +439,37 @@ public:
 };
 LINK_ENTITY_TO_CLASS(item_flare_round, CItem_FlareRound);
 
+//Gasoline
+class CItem_Gasoline : public CItem
+{
+public:
+	DECLARE_CLASS(CItem_Gasoline, CItem);
+
+	void Spawn(void)
+	{
+		Precache();
+		SetModel("models/props_junk/gascan001a.mdl");
+		BaseClass::Spawn();
+	}
+	void Precache(void)
+	{
+		PrecacheModel("models/props_junk/gascan001a.mdl");
+	}
+	bool MyTouch(CBasePlayer* pPlayer)
+	{
+		if (ITEM_GiveAmmo(pPlayer, 100, "Gasoline"))
+		{
+			if (g_pGameRules->ItemShouldRespawn(this) == GR_ITEM_RESPAWN_NO)
+			{
+				UTIL_Remove(this);
+			}
+			return true;
+		}
+		return false;
+	}
+};
+LINK_ENTITY_TO_CLASS(item_Gasoline, CItem_Gasoline);
+
 // ========================================================================
 //	>> BoxFlareRounds
 // ========================================================================
@@ -447,25 +478,25 @@ LINK_ENTITY_TO_CLASS(item_flare_round, CItem_FlareRound);
 class CItem_BoxFlareRounds : public CItem
 {
 public:
-	DECLARE_CLASS( CItem_BoxFlareRounds, CItem );
+	DECLARE_CLASS(CItem_BoxFlareRounds, CItem);
 
-	void Spawn( void )
-	{ 
-		Precache( );
-		SetModel( "models/items/boxflares.mdl");
-		BaseClass::Spawn( );
-	}
-	void Precache( void )
+	void Spawn(void)
 	{
-		PrecacheModel ("models/items/boxflares.mdl");
+		Precache();
+		SetModel("models/items/boxflares.mdl");
+		BaseClass::Spawn();
 	}
-	bool MyTouch( CBasePlayer *pPlayer )
+	void Precache(void)
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_BOX_FLARE_ROUNDS, "FlareRound"))
+		PrecacheModel("models/items/boxflares.mdl");
+	}
+	bool MyTouch(CBasePlayer* pPlayer)
+	{
+		if (ITEM_GiveAmmo(pPlayer, SIZE_BOX_FLARE_ROUNDS, "FlareRound"))
 		{
-			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
+			if (g_pGameRules->ItemShouldRespawn(this) == GR_ITEM_RESPAWN_NO)
 			{
-				UTIL_Remove(this);	
+				UTIL_Remove(this);
 			}
 			return true;
 		}

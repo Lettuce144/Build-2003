@@ -41,6 +41,7 @@ void RegisterUserMessages( void )
 	usermessages->Register( "KeyHintText", -1 );	// Displays hint text display
 	usermessages->Register( "SquadMemberDied", 0 );
 	usermessages->Register( "AmmoDenied", 2 );
+	usermessages->Register("AR2ModeChanged", -1); //Lettuce
 #ifdef MAPBASE
 	// This sends the credits file now
 	usermessages->Register( "CreditsMsg", -1 );

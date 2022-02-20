@@ -27,6 +27,16 @@ $Project "Client (Episodic)"
 		$File	"c_team_objectiveresource.cpp"
 		$File	"c_team_objectiveresource.h"
 
+		$Folder "Build2003"
+		{
+			$File	"build2003\c_npc_hydra.cpp"
+			$File	"build2003\c_weapon_ar2.cpp"
+			$File	"build2003\c_weapon_gravitygun.cpp"
+			$File	"build2003\c_weapon_hopwire.cpp"
+			$File	"build2003\c_weapon_stickylauncher.cpp"
+
+		}
+
 		$Folder	"HL2 DLL"
 		{
 			$File	"$SRCDIR\game\shared\hl2\basehlcombatweapon_shared.cpp"
