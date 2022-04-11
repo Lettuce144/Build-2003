@@ -1774,7 +1774,7 @@ void CWeaponRPG::SuppressGuiding( bool state )
 
 	if ( m_hLaserDot == NULL )
 	{
-		StartGuiding();
+		//StartGuiding(); //Used to be in mp only now here too :3
 
 		//STILL!?
 		if ( m_hLaserDot == NULL )
@@ -1834,12 +1834,11 @@ void CWeaponRPG::ItemPostFrame( void )
 
 	//Player has toggled guidance state
 	//Adrian: Players are not allowed to remove the laser guide in single player anymore, bye!
-	if ( g_pGameRules->IsMultiplayer() == true )
+	//Fuck you, Please do
+
+	if ( pPlayer->m_afButtonPressed & IN_ATTACK2 )
 	{
-		if ( pPlayer->m_afButtonPressed & IN_ATTACK2 )
-		{
-			ToggleGuiding();
-		}
+		ToggleGuiding();
 	}
 
 	//Move the laser

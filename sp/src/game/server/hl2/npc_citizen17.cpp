@@ -1215,18 +1215,32 @@ void CNPC_Citizen::PrescheduleThink()
 		NDebugOverlay::Line( EyePosition(), GetEnemy()->EyePosition(), 255, 0, 0, false, .1 );
 	}
 	
-	if ( DebuggingCommanderMode() )
-	{
+	//if ( DebuggingCommanderMode() ) //Edit me later for rotating texture
+	//{
 		if ( HaveCommandGoal() )
 		{
 			CBaseEntity *pCommandPoint = gEntList.FindEntityByClassname( NULL, COMMAND_POINT_CLASSNAME );
 			
 			if ( pCommandPoint )
 			{
-				NDebugOverlay::Cross3D(pCommandPoint->GetAbsOrigin(), 16, 0, 255, 255, false, 0.1 );
+				
+				Vector rotationAxisWs(0, 1, 0);
+				const float rotationAngle = -90;
+				Vector rotationAxisLs;
+				VectorIRotate(rotationAxisWs, pCommandPoint->EntityToWorldTransform(), rotationAxisLs);
+				Quaternion q;
+				AxisAngleQuaternion(rotationAxisLs, rotationAngle, q);
+				matrix3x4_t xform;
+				QuaternionMatrix(q, vec3_origin, xform);
+				matrix3x4_t localToWorldMatrix;
+				ConcatTransforms(pCommandPoint->EntityToWorldTransform(), xform, localToWorldMatrix);
+				QAngle localAngles;
+				MatrixAngles(localToWorldMatrix, localAngles);
+
+				NDebugOverlay::Circle(pCommandPoint->GetAbsOrigin(), localAngles, 16, 255, 255, 10, 50, false, 0.1);
 			}
 		}
-	}
+	//}
 }
 
 //-----------------------------------------------------------------------------

@@ -58,7 +58,7 @@ CWeaponSMG2::CWeaponSMG2( )
 	m_fMaxRange1		= 2000;
 	m_fMinRange1		= 32;
 
-	m_iFireMode			= FIREMODE_3RNDBURST;
+	m_iFireMode			= FIREMODE_FULLAUTO;
 }
 
 void CWeaponSMG2::Precache( void )

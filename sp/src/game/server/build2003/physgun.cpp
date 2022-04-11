@@ -1317,8 +1317,8 @@ void CWeaponGravityGun::SecondaryAttack(void)
 	else
 	{
 		// if the object has no physics object, or isn't a physprop or brush entity, then don't glue
-		if (!pHit->VPhysicsGetObject() || pHit->GetMoveType() != MOVETYPE_VPHYSICS)
-			return;
+		//if (!pHit->VPhysicsGetObject() || pHit->GetMoveType() != MOVETYPE_VPHYSICS)
+			//return;
 	}
 
 	QAngle angles;

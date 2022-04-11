@@ -86,6 +86,8 @@ bool g_bMovementOptimizations = true;
 
 extern IGameMovement *g_pGameMovement;
 
+ConVar sv_bhop_enabled("sv_bhop_enabled", "1", FCVAR_ARCHIVE, "Enable bhopping by not checking our speed when jumping");
+
 #if defined( PLAYER_GETTING_STUCK_TESTING )
 
 // If you ever get stuck walking around, then you can run this code to find the code which would leave the player in a bad spot
@@ -1419,6 +1421,7 @@ void CGameMovement::WaterMove( void )
 	wishspeed = VectorNormalize(wishdir);
 
 	// Cap speed.
+	
 	if (wishspeed > mv->m_flMaxSpeed)
 	{
 		VectorScale (wishvel, mv->m_flMaxSpeed/wishspeed, wishvel);
@@ -2485,10 +2488,17 @@ bool CGameMovement::CheckJumpButton( void )
 		float flMaxSpeed = mv->m_flMaxSpeed + ( mv->m_flMaxSpeed * flSpeedBoostPerc );
 		float flNewSpeed = ( flSpeedAddition + mv->m_vecVelocity.Length2D() );
 
-		// If we're over the maximum, we want to only boost as much as will get us to the goal speed
-		if ( flNewSpeed > flMaxSpeed )
+		//Build 2003 bhop
+		if (sv_bhop_enabled.GetBool())
 		{
-			flSpeedAddition -= flNewSpeed - flMaxSpeed;
+			
+		}
+		else {
+			// If we're over the maximum, we want to only boost as much as will get us to the goal speed //Want bhop? remove me
+			if (flNewSpeed > flMaxSpeed)
+			{
+				flSpeedAddition -= flNewSpeed - flMaxSpeed;
+			}
 		}
 
 		if ( mv->m_flForwardMove < 0.0f )

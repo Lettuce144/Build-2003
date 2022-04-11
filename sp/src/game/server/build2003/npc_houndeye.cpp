@@ -10,15 +10,16 @@
 #include "ai_default.h"
 #include "ai_node.h"
 #include "ai_route.h"
-#include "ai_navigator.h"
-#include "ai_motor.h"
+#include "AI_Navigator.h"
+#include "AI_Motor.h"
 #include "ai_squad.h"
-#include "ai_tacticalservices.h"
+#include "AI_TacticalServices.h"
 #include "soundent.h"
-#include "entitylist.h"
+#include "EntityList.h"
 #include "game.h"
 #include "activitylist.h"
 #include "hl2_shareddefs.h"
+#include "grenade_energy.h"
 #include "energy_wave.h"
 #include "ai_interactions.h"
 #include "ndebugoverlay.h"
@@ -27,19 +28,21 @@
 #include "vstdlib/random.h"
 #include "engine/IEngineSound.h"
 #include "movevars_shared.h"
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#define	HOUNDEYE_MAX_ATTACK_RADIUS		950
+#define	HOUNDEYE_MAX_ATTACK_RADIUS		500
 #define	HOUNDEYE_MIN_ATTACK_RADIUS		100
 
 #define HOUNDEYE_EYE_FRAMES 4 // how many different switchable maps for the eye
 
-#define HOUNDEYE_TOP_MASS	 300.0f
+#define HOUNDEYE_PARTICLE_COLORNAME "houndeye_shockwave_distortion"
 
 ConVar	sk_Houndeye_health("sk_Houndeye_health", "0");
 ConVar	sk_Houndeye_dmg_blast("sk_Houndeye_dmg_blast", "0");
+
 
 //=========================================================
 // Interactions
@@ -90,7 +93,6 @@ enum
 	SCHED_HOUND_CHASE_ENEMY,
 	SCHED_HOUND_COVER_WAIT,
 	SCHED_HOUND_GROUP_RALLEY,
-	SCHED_HOUND_PATROL_WALK_LOOP,
 };
 
 //=========================================================
@@ -141,7 +143,6 @@ void CNPC_Houndeye::InitCustomSchedules(void)
 	ADD_CUSTOM_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_CHASE_ENEMY);
 	ADD_CUSTOM_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_COVER_WAIT);
 	ADD_CUSTOM_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_GROUP_RALLEY);
-	ADD_CUSTOM_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_PATROL_WALK_LOOP);
 
 	ADD_CUSTOM_ACTIVITY(CNPC_Houndeye, ACT_HOUND_GUARD);
 
@@ -158,7 +159,6 @@ void CNPC_Houndeye::InitCustomSchedules(void)
 	AI_LOAD_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_CHASE_ENEMY);
 	AI_LOAD_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_COVER_WAIT);
 	AI_LOAD_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_GROUP_RALLEY);
-	AI_LOAD_SCHEDULE(CNPC_Houndeye, SCHED_HOUND_PATROL_WALK_LOOP);
 }
 
 LINK_ENTITY_TO_CLASS(npc_houndeye, CNPC_Houndeye);
@@ -170,6 +170,8 @@ DEFINE_FIELD(m_fAsleep, FIELD_BOOLEAN),
 DEFINE_FIELD(m_fDontBlink, FIELD_BOOLEAN),
 DEFINE_FIELD(m_flNextSecondaryAttack, FIELD_TIME),
 DEFINE_FIELD(m_bLoopClockwise, FIELD_BOOLEAN),
+//DEFINE_FIELD(m_pEnergyWave, FIELD_CLASSPTR),
+DEFINE_FIELD(m_flEndEnergyWaveTime, FIELD_TIME),
 
 END_DATADESC()
 
@@ -197,7 +199,7 @@ int CNPC_Houndeye::RangeAttack1Conditions(float flDot, float flDist)
 		MASK_NPCSOLID, this, COLLISION_GROUP_NONE, &tr);
 	if (tr.startsolid)
 	{
-		CBaseEntity *pEntity = tr.m_pEnt;
+		CBaseEntity* pEntity = tr.m_pEnt;
 		if (pEntity->Classify() == CLASS_HOUNDEYE)
 		{
 			return(COND_NONE);
@@ -214,7 +216,7 @@ int CNPC_Houndeye::RangeAttack1Conditions(float flDot, float flDist)
 	{
 		return(COND_NONE);
 	}
-	if (flDist >(HOUNDEYE_MAX_ATTACK_RADIUS * 0.5))
+	if (flDist > (HOUNDEYE_MAX_ATTACK_RADIUS * 0.5))
 	{
 		return COND_TOO_FAR_TO_ATTACK;
 	}
@@ -248,7 +250,7 @@ float CNPC_Houndeye::MaxYawSpeed(void)
 
 	switch (GetActivity())
 	{
-	case ACT_CROUCHIDLE: //sleeping!
+	case ACT_CROUCHIDLE://sleeping!
 		ys = 0;
 		break;
 	case ACT_IDLE:
@@ -272,7 +274,7 @@ float CNPC_Houndeye::MaxYawSpeed(void)
 // HandleAnimEvent - catches the monster-specific messages
 // that occur when tagged animation frames are played.
 //=========================================================
-void CNPC_Houndeye::HandleAnimEvent(animevent_t *pEvent)
+void CNPC_Houndeye::HandleAnimEvent(animevent_t* pEvent)
 {
 	switch (pEvent->event)
 	{
@@ -375,9 +377,9 @@ void CNPC_Houndeye::HandleAnimEvent(animevent_t *pEvent)
 			// Don't jump too far/fast.
 			//
 			float distance = vecJumpDir.Length();
-			if (distance > 850) //OG:650
+			if (distance > 650)
 			{
-				vecJumpDir = vecJumpDir * (825.0 / distance); //OG:650
+				vecJumpDir = vecJumpDir * (650.0 / distance);
 			}
 		}
 		else
@@ -411,9 +413,6 @@ void CNPC_Houndeye::Spawn()
 	SetHullType(HULL_WIDE_SHORT);
 	SetHullSizeNormal();
 
-	//Set random skin everytime spawned
-	m_nSkin = RandomInt(0, 2);
-
 	SetSolid(SOLID_BBOX);
 	AddSolidFlags(FSOLID_NOT_STANDABLE);
 	SetMoveType(MOVETYPE_STEP);
@@ -430,9 +429,11 @@ void CNPC_Houndeye::Spawn()
 
 	m_flNextSecondaryAttack = 0;
 	m_bLoopClockwise = random->RandomInt(0, 1) ? true : false;
+	m_nSkin = random->RandomInt(0, 2);
+	
+	m_flEndEnergyWaveTime = 0;
 
 	SetCollisionGroup(HL2COLLISION_GROUP_HOUNDEYE);
-
 	NPCInit();
 }
 
@@ -457,9 +458,13 @@ void CNPC_Houndeye::Precache()
 
 	PrecacheScriptSound("NPC_Houndeye.GroupAttack");
 	PrecacheScriptSound("NPC_Houndeye.GroupFollow");
+	
+	PrecacheParticleSystem("houndeye_shockwave_distortion");
+	PrecacheParticleSystem("houndeye_shockwave_distortion2");
+	PrecacheParticleSystem("houndeye_shockwave_distortion3");
+	PrecacheParticleSystem("houndeye_shockwave_distortion4");
 
-	m_iSpriteTexture = PrecacheModel("sprites/shockwave.vmt");
-
+	UTIL_PrecacheOther("grenade_energy");
 	BaseClass::Precache();
 }
 
@@ -523,22 +528,16 @@ void CNPC_Houndeye::AlertSound(void)
 //=========================================================
 // DeathSound 
 //=========================================================
-void CNPC_Houndeye::DeathSound(void)
+void CNPC_Houndeye::DeathSound(const CTakeDamageInfo& info)
 {
-	if (IsOnFire())
-		return;
-
 	EmitSound("NPC_Houndeye.Die");
 }
 
 //=========================================================
 // PainSound 
 //=========================================================
-void CNPC_Houndeye::PainSound(void)
+void CNPC_Houndeye::PainSound(const CTakeDamageInfo& info)
 {
-	if (IsOnFire())
-		return;
-
 	EmitSound("NPC_Houndeye.Pain");
 }
 
@@ -548,7 +547,6 @@ void CNPC_Houndeye::PainSound(void)
 //=========================================================
 void CNPC_Houndeye::WriteBeamColor(void)
 {
-	BYTE	bRed, bGreen, bBlue;
 
 	if (m_pSquad)
 	{
@@ -556,39 +554,80 @@ void CNPC_Houndeye::WriteBeamColor(void)
 		{
 		case 2:
 			// no case for 0 or 1, cause those are impossible for monsters in Squads.
-			bRed = 101;
-			bGreen = 133;
-			bBlue = 221;
+			HOUNDEYE_PARTICLE_COLORNAME "houndeye_shockwave_distortion2";
 			break;
 		case 3:
-			bRed = 67;
-			bGreen = 85;
-			bBlue = 255;
+			HOUNDEYE_PARTICLE_COLORNAME "houndeye_shockwave_distortion3";
 			break;
 		case 4:
-			bRed = 62;
-			bGreen = 33;
-			bBlue = 211;
+			HOUNDEYE_PARTICLE_COLORNAME "houndeye_shockwave_distortion4";
 			break;
 		default:
 			DevWarning(2, "Unsupported Houndeye SquadSize!\n");
-			bRed = 188;
-			bGreen = 220;
-			bBlue = 255;
+			HOUNDEYE_PARTICLE_COLORNAME "houndeye_shockwave_distortion";
 			break;
 		}
 	}
 	else
 	{
 		// solo houndeye - weakest beam
-		bRed = 188;
-		bGreen = 220;
-		bBlue = 255;
+		HOUNDEYE_PARTICLE_COLORNAME "houndeye_shockwave_distortion";
 	}
+}
 
-	WRITE_BYTE(bRed);
-	WRITE_BYTE(bGreen);
-	WRITE_BYTE(bBlue);
+//-----------------------------------------------------------------------------
+// Purpose: Plays the engine sound.
+//-----------------------------------------------------------------------------
+void CNPC_Houndeye::NPCThink(void)
+{
+	/*
+	if (m_pEnergyWave)
+	{
+		if (gpGlobals->curtime > m_flEndEnergyWaveTime)
+		{
+			UTIL_Remove(m_pEnergyWave);
+			m_pEnergyWave = NULL;
+		}
+	}*/
+
+	// -----------------------------------------------------
+	//  Update collision group
+	//		While I'm running I'm allowed to penetrate
+	//		other houndeyes
+	// -----------------------------------------------------
+	Vector vVelocity;
+	GetVelocity(&vVelocity, NULL);
+	if (vVelocity.Length() > 10)
+	{
+		SetCollisionGroup(HL2COLLISION_GROUP_HOUNDEYE);
+	}
+	else
+	{
+		// Don't go solid if resting in another houndeye 
+		trace_t tr;
+		AI_TraceHull(GetAbsOrigin(), GetAbsOrigin() + Vector(0, 0, 1),
+			GetHullMins(), GetHullMaxs(),
+			MASK_NPCSOLID, this, COLLISION_GROUP_NONE, &tr);
+		if (!tr.startsolid)
+		{
+			SetCollisionGroup(COLLISION_GROUP_NONE);
+		}
+		else
+		{
+			SetCollisionGroup(HL2COLLISION_GROUP_HOUNDEYE);
+		}
+	}
+	/*
+		if (GetCollisionGroup() == HL2COLLISION_GROUP_HOUNDEYE)
+		{
+			NDebugOverlay::Box(GetAbsOrigin(), GetHullMins(), GetHullMaxs(), 0, 255, 0, 0, 0);
+		}
+		else
+		{
+			NDebugOverlay::Box(GetAbsOrigin(), GetHullMins(), GetHullMaxs(), 255, 0, 0, 0, 0);
+		}
+	*/
+	BaseClass::NPCThink();
 }
 
 //------------------------------------------------------------------------------
@@ -596,7 +635,7 @@ void CNPC_Houndeye::WriteBeamColor(void)
 // Input   :
 // Output  :
 //------------------------------------------------------------------------------
-int CNPC_Houndeye::OnTakeDamage_Alive(const CTakeDamageInfo &info)
+int CNPC_Houndeye::OnTakeDamage_Alive(const CTakeDamageInfo& info)
 {
 	if (m_pSquad && random->RandomInt(0, 10) == 10)
 	{
@@ -614,7 +653,7 @@ int CNPC_Houndeye::OnTakeDamage_Alive(const CTakeDamageInfo &info)
 // Input   :
 // Output  :
 //------------------------------------------------------------------------------
-void CNPC_Houndeye::Event_Killed(const CTakeDamageInfo &info)
+void CNPC_Houndeye::Event_Killed(const CTakeDamageInfo& info)
 {
 	EmitSound("NPC_Houndeye.Retreat");
 	m_flSoundWaitTime = gpGlobals->curtime + 1.0;
@@ -630,120 +669,112 @@ void CNPC_Houndeye::Event_Killed(const CTakeDamageInfo &info)
 //=========================================================
 // SonicAttack
 //=========================================================
-void CNPC_Houndeye::SonicAttack(void)
+void CNPC_Houndeye::SonicAttack(void) //magic stuff here :/
 {
 	EmitSound("NPC_Houndeye.SonicAttack");
-
-	float		flAdjustedDamage;
-	float		flDist;
-
-	CBroadcastRecipientFilter filter2;
-	te->BeamRingPoint(filter2, 0.0,
-		GetAbsOrigin(),							//origin
-		16,										//start radius
-		HOUNDEYE_MAX_ATTACK_RADIUS,//end radius
-		m_iSpriteTexture,						//texture
-		0,										//halo index
-		0,										//start frame
-		0,										//framerate
-		0.2,									//life
-		24,									//width
-		16,										//spread
-		0,										//amplitude
-		188,									//r
-		220,									//g
-		255,									//b
-		192,									//a
-		0										//speed
-		);
-
-	CBroadcastRecipientFilter filter3;
-	te->BeamRingPoint(filter3, 0.0,
-		GetAbsOrigin(),									//origin
-		16,												//start radius
-		HOUNDEYE_MAX_ATTACK_RADIUS / 2,											//end radius
-		m_iSpriteTexture,								//texture
-		0,												//halo index
-		0,												//start frame
-		0,												//framerate
-		0.2,											//life
-		24,											//width
-		16,												//spread
-		0,												//amplitude
-		188,											//r
-		220,											//g
-		255,											//b
-		192,											//a
-		0												//speed
-		);
-
-	CBaseEntity *pEntity = NULL;
-	// iterate on all entities in the vicinity.
-	while ((pEntity = gEntList.FindEntityInSphere(pEntity, GetAbsOrigin(), HOUNDEYE_MAX_ATTACK_RADIUS)) != NULL)
+	/*
+	if (m_pEnergyWave)
 	{
-		if (pEntity->m_takedamage != DAMAGE_NO)
+		UTIL_Remove(m_pEnergyWave);
+	}
+	Vector vFacingDir = EyeDirection3D();
+	m_pEnergyWave = (CEnergyWave*)Create("energy_wave", EyePosition(), GetLocalAngles());
+	m_flEndEnergyWaveTime = gpGlobals->curtime + 1; //<<TEMP>> magic
+	m_pEnergyWave->SetAbsVelocity(100 * vFacingDir);
+	Vector Orgi = EyePosition();
+	*/
+	DispatchParticleEffect(HOUNDEYE_PARTICLE_COLORNAME, PATTACH_ABSORIGIN_FOLLOW, this);
+
+	CBaseEntity* pEntity = NULL;
+	// iterate on all entities in the vicinity.
+	for (CEntitySphereQuery sphere(GetAbsOrigin(), HOUNDEYE_MAX_ATTACK_RADIUS); pEntity = sphere.GetCurrentEntity(); sphere.NextEntity())
+	{
+		if (pEntity->Classify() == CLASS_HOUNDEYE)
 		{
-			if (!FClassnameIs(pEntity, "npc_houndeye"))
-			{// houndeyes don't hurt other houndeyes with their attack
+			continue;
+		}
 
-				// houndeyes do FULL damage if the ent in question is visible. Half damage otherwise.
-				// This means that you must get out of the houndeye's attack range entirely to avoid damage.
-				// Calculate full damage first
+		if (pEntity->GetFlags() & FL_NOTARGET)
+		{
+			continue;
+		}
 
-				flAdjustedDamage = sk_Houndeye_dmg_blast.GetFloat();
+		IPhysicsObject* pPhysicsObject = pEntity->VPhysicsGetObject();
 
-				flDist = (pEntity->WorldSpaceCenter() - GetAbsOrigin()).Length();
+		if (pEntity->m_takedamage != DAMAGE_NO || pPhysicsObject)
+		{
+			// --------------------------
+			// Adjust damage by distance
+			// --------------------------
+			float flDist = (pEntity->WorldSpaceCenter() - GetAbsOrigin()).Length();
+			float flDamageAdjuster = 1 - (flDist / HOUNDEYE_MAX_ATTACK_RADIUS);
 
-				flAdjustedDamage -= (flDist / HOUNDEYE_MAX_ATTACK_RADIUS) * flAdjustedDamage;
+			// --------------------------
+			// Adjust damage by direction
+			// --------------------------
+			Vector forward;
+			AngleVectors(GetAbsAngles(), &forward);
+			Vector vEntDir = (pEntity->GetAbsOrigin() - GetAbsOrigin());
+			VectorNormalize(vEntDir);
+			float flDotPr = DotProduct(forward, vEntDir);
+			flDamageAdjuster *= flDotPr;
 
-				if (!FVisible(pEntity))
+			if (flDamageAdjuster < 0)
+			{
+				continue;
+			}
+
+			// --------------------------
+			// Adjust damage by visibility
+			// --------------------------
+			if (!FVisible(pEntity))
+			{
+				if (pEntity->IsPlayer())
 				{
-					if (pEntity->IsPlayer())
-					{
-						// if this entity is a client, and is not in full view, inflict half damage. We do this so that players still 
-						// take the residual damage if they don't totally leave the houndeye's effective radius. We restrict it to clients
-						// so that monsters in other parts of the level don't take the damage and get pissed.
-						flAdjustedDamage *= 0.5;
-					}
-					else if (!FClassnameIs(pEntity, "func_breakable") && !FClassnameIs(pEntity, "func_pushable"))
-					{
-						// do not hurt nonclients through walls, but allow damage to be done to breakables
-						flAdjustedDamage = 0;
-					}
+					// if this entity is a client, and is not in full view, inflict half damage. We do this so that players still 
+					// take the residual damage if they don't totally leave the houndeye's effective radius. We restrict it to clients
+					// so that monsters in other parts of the level don't take the damage and get pissed.
+					flDamageAdjuster *= 0.5;
 				}
-
-				//ALERT ( at_aiconsole, "Damage: %f\n", flAdjustedDamage );
-
-				if (flAdjustedDamage > 0)
+				else if (!FClassnameIs(pEntity, "func_breakable") && !FClassnameIs(pEntity, "func_pushable"))
 				{
-					CTakeDamageInfo info(this, this, flAdjustedDamage, DMG_SONIC | DMG_ALWAYSGIB);
-					CalculateExplosiveDamageForce(&info, (pEntity->GetAbsOrigin() - GetAbsOrigin()), pEntity->GetAbsOrigin());
-
-					pEntity->TakeDamage(info);
-
-					if ((pEntity->GetAbsOrigin() - GetAbsOrigin()).Length2D() <= HOUNDEYE_MAX_ATTACK_RADIUS)
-					{
-						if (pEntity->GetMoveType() == MOVETYPE_VPHYSICS || (pEntity->VPhysicsGetObject() && !pEntity->IsPlayer()))
-						{
-							IPhysicsObject *pPhysObject = pEntity->VPhysicsGetObject();
-
-							if (pPhysObject)
-							{
-								float flMass = pPhysObject->GetMass();
-
-								if (flMass <= HOUNDEYE_TOP_MASS)
-								{
-									// Increase the vertical lift of the force
-									Vector vecForce = info.GetDamageForce();
-									vecForce.z *= 2.0f;
-									info.SetDamageForce(vecForce);
-
-									pEntity->VPhysicsTakeDamage(info);
-								}
-							}
-						}
-					}
+					// do not hurt nonclients through walls, but allow damage to be done to breakables
+					continue;
 				}
+			}
+
+			// ------------------------------
+			//  Apply the damage
+			// ------------------------------
+			if (pEntity->m_takedamage != DAMAGE_NO)
+			{
+				CTakeDamageInfo info(this, this, flDamageAdjuster * sk_Houndeye_dmg_blast.GetFloat(), DMG_SONIC | DMG_ALWAYSGIB);
+				CalculateExplosiveDamageForce(&info, (pEntity->GetAbsOrigin() - GetAbsOrigin()), pEntity->GetAbsOrigin());
+
+				pEntity->TakeDamage(info);
+
+				// Throw the player
+				if (pEntity->IsPlayer())
+				{
+					Vector forward;
+					AngleVectors(GetLocalAngles(), &forward);
+
+					Vector vecVelocity = pEntity->GetAbsVelocity();
+					vecVelocity += forward * 250 * flDamageAdjuster;
+					vecVelocity.z = 300 * flDamageAdjuster;
+					pEntity->SetAbsVelocity(vecVelocity);
+					pEntity->ViewPunch(QAngle(random->RandomInt(-20, 20), 0, random->RandomInt(-20, 20)));
+				}
+			}
+			// ------------------------------
+			//  Apply physics foces
+			// ------------------------------
+			IPhysicsObject* pPhysicsObject = pEntity->VPhysicsGetObject();
+			if (pPhysicsObject)
+			{
+				float flForce = flDamageAdjuster * 8000;
+				pPhysicsObject->ApplyForceCenter((vEntDir + Vector(0, 0, 0.2)) * flForce);
+				pPhysicsObject->ApplyTorqueCenter(vEntDir * flForce);
 			}
 		}
 	}
@@ -752,7 +783,7 @@ void CNPC_Houndeye::SonicAttack(void)
 //=========================================================
 // start task
 //=========================================================
-void CNPC_Houndeye::StartTask(const Task_t *pTask)
+void CNPC_Houndeye::StartTask(const Task_t* pTask)
 {
 	switch (pTask->iTask)
 	{
@@ -766,8 +797,17 @@ void CNPC_Houndeye::StartTask(const Task_t *pTask)
 		{
 			Vector vTargetPos = GetEnemyLKP();
 			vTargetPos.z = GetFloorZ(vTargetPos);
+			
+			//Lettuce
+			Vector center = GetAbsOrigin();
+			vec_t Centerz = center.z;
+			Vector CenterXY;
+			CenterXY.x = random->RandomInt(0, 500);
+			CenterXY.y = random->RandomInt(0, 500);
+			
 
-			if (GetNavigator()->SetRadialGoal(vTargetPos, Vector(0, 0, random->RandomInt(50, 500)), 90, 175, 64.0f, m_bLoopClockwise))
+
+			if (GetNavigator()->SetRadialGoal(vTargetPos, CenterXY * Centerz, 90, 175, 0, m_bLoopClockwise))
 			{
 				TaskComplete();
 				return;
@@ -863,7 +903,7 @@ void CNPC_Houndeye::StartTask(const Task_t *pTask)
 //=========================================================
 // RunTask 
 //=========================================================
-void CNPC_Houndeye::RunTask(const Task_t *pTask)
+void CNPC_Houndeye::RunTask(const Task_t* pTask)
 {
 	switch (pTask->iTask)
 	{
@@ -883,7 +923,7 @@ void CNPC_Houndeye::RunTask(const Task_t *pTask)
 		/*//<<TEMP>>
 		if ( pev->skin < HOUNDEYE_EYE_FRAMES - 1 )
 		{
-		pev->skin++;
+			pev->skin++;
 		}
 		*/
 		break;
@@ -926,11 +966,11 @@ void CNPC_Houndeye::PrescheduleThink(void)
 		/*//<<TEMP>>//<<TEMP>>
 		if ( ( pev->skin == 0 ) && random->RandomInt(0,0x7F) == 0 )
 		{// start blinking!
-		pev->skin = HOUNDEYE_EYE_FRAMES - 1;
+			pev->skin = HOUNDEYE_EYE_FRAMES - 1;
 		}
 		else if ( pev->skin != 0 )
 		{// already blinking
-		pev->skin--;
+			pev->skin--;
 		}
 		*/
 	}
@@ -991,7 +1031,7 @@ bool CNPC_Houndeye::IsAnyoneInSquadAttacking(void)
 	}
 
 	AISquadIter_t iter;
-	for (CAI_BaseNPC *pSquadMember = m_pSquad->GetFirstMember(&iter); pSquadMember; pSquadMember = m_pSquad->GetNextMember(&iter))
+	for (CAI_BaseNPC* pSquadMember = m_pSquad->GetFirstMember(&iter); pSquadMember; pSquadMember = m_pSquad->GetNextMember(&iter))
 	{
 		if (pSquadMember->IsCurSchedule(SCHED_HOUND_RANGE_ATTACK1))
 		{
@@ -1009,10 +1049,6 @@ int CNPC_Houndeye::SelectSchedule(void)
 	switch (m_NPCState)
 	{
 	case NPC_STATE_IDLE:
-	{
-		return SCHED_HOUND_PATROL_WALK_LOOP;
-		break;
-	}
 	case NPC_STATE_ALERT:
 	{
 		if (HasCondition(COND_LIGHT_DAMAGE) ||
@@ -1020,8 +1056,6 @@ int CNPC_Houndeye::SelectSchedule(void)
 		{
 			return SCHED_TAKE_COVER_FROM_ORIGIN;
 		}
-
-		return SCHED_HOUND_PATROL_WALK_LOOP;
 		break;
 	}
 	case NPC_STATE_COMBAT:
@@ -1062,8 +1096,7 @@ int CNPC_Houndeye::SelectSchedule(void)
 			return SCHED_HOUND_GROUP_RETREAT;
 		}
 
-		if (HasCondition(COND_LIGHT_DAMAGE) |
-			HasCondition(COND_HEAVY_DAMAGE))
+		if (HasCondition(COND_LIGHT_DAMAGE) || HasCondition(COND_HEAVY_DAMAGE))
 		{
 			if (random->RandomFloat(0, 1) <= 0.4)
 			{
@@ -1124,9 +1157,6 @@ int CNPC_Houndeye::SelectSchedule(void)
 			}
 			return SCHED_HOUND_ATTACK_STRAFE;
 		}
-
-		return SCHED_CHASE_ENEMY;
-
 		break;
 	}
 	}
@@ -1142,7 +1172,7 @@ int CNPC_Houndeye::SelectSchedule(void)
 // Output :	 true  - if sub-class has a response for the interaction
 //			 false - if sub-class has no response
 //-----------------------------------------------------------------------------
-bool CNPC_Houndeye::HandleInteraction(int interactionType, void *data, CBaseCombatCharacter* sourceEnt)
+bool CNPC_Houndeye::HandleInteraction(int interactionType, void* data, CBaseCombatCharacter* sourceEnt)
 {
 	if (interactionType == g_interactionHoundeyeGroupAttack)
 	{
@@ -1179,22 +1209,22 @@ bool CNPC_Houndeye::HandleInteraction(int interactionType, void *data, CBaseComb
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_ATTACK_STRAFE,
+	SCHED_HOUND_ATTACK_STRAFE,
 
-"	Tasks "
-"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_ATTACK_STRAFE_REVERSE"
-"		TASK_HOUND_GET_PATH_TO_CIRCLE	0"
-"		TASK_RUN_PATH					0"
-"		TASK_WAIT_FOR_MOVEMENT			0"
-""
-"	Interrupts "
-"		COND_WEAPON_SIGHT_OCCLUDED"
-"		COND_NEW_ENEMY"
-"		COND_ENEMY_DEAD"
-"		COND_HEAVY_DAMAGE"
-"		COND_CAN_RANGE_ATTACK1"
-"		COND_HOUND_GROUP_ATTACK"
-"		COND_HOUND_GROUP_RETREAT"
+	"	Tasks "
+	"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_ATTACK_STRAFE_REVERSE"
+	"		TASK_HOUND_GET_PATH_TO_CIRCLE	0"
+	"		TASK_RUN_PATH					0"
+	"		TASK_WAIT_FOR_MOVEMENT			0"
+	""
+	"	Interrupts "
+	"		COND_WEAPON_SIGHT_OCCLUDED"
+	"		COND_NEW_ENEMY"
+	"		COND_ENEMY_DEAD"
+	"		COND_HEAVY_DAMAGE"
+	"		COND_CAN_RANGE_ATTACK1"
+	"		COND_HOUND_GROUP_ATTACK"
+	"		COND_HOUND_GROUP_RETREAT"
 );
 
 //=========================================================
@@ -1204,23 +1234,23 @@ SCHED_HOUND_ATTACK_STRAFE,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_ATTACK_STRAFE_REVERSE,
+	SCHED_HOUND_ATTACK_STRAFE_REVERSE,
 
-"	Tasks "
-"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_CHASE_ENEMY"
-"		TASK_HOUND_REVERSE_STRAFE_DIR	0"
-"		TASK_HOUND_GET_PATH_TO_CIRCLE	0"
-"		TASK_RUN_PATH					0"
-"		TASK_WAIT_FOR_MOVEMENT			0"
-""
-"	Interrupts "
-"		COND_WEAPON_SIGHT_OCCLUDED"
-"		COND_NEW_ENEMY"
-"		COND_ENEMY_DEAD"
-"		COND_HEAVY_DAMAGE"
-"		COND_CAN_RANGE_ATTACK1"
-"		COND_HOUND_GROUP_ATTACK"
-"		COND_HOUND_GROUP_RETREAT"
+	"	Tasks "
+	"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_CHASE_ENEMY"
+	"		TASK_HOUND_REVERSE_STRAFE_DIR	0"
+	"		TASK_HOUND_GET_PATH_TO_CIRCLE	0"
+	"		TASK_RUN_PATH					0"
+	"		TASK_WAIT_FOR_MOVEMENT			0"
+	""
+	"	Interrupts "
+	"		COND_WEAPON_SIGHT_OCCLUDED"
+	"		COND_NEW_ENEMY"
+	"		COND_ENEMY_DEAD"
+	"		COND_HEAVY_DAMAGE"
+	"		COND_CAN_RANGE_ATTACK1"
+	"		COND_HOUND_GROUP_ATTACK"
+	"		COND_HOUND_GROUP_RETREAT"
 );
 
 //========================================================
@@ -1228,21 +1258,21 @@ SCHED_HOUND_ATTACK_STRAFE_REVERSE,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_CHASE_ENEMY,
+	SCHED_HOUND_CHASE_ENEMY,
 
-"	Tasks"
-"		TASK_SET_TOLERANCE_DISTANCE		30	 "
-"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_CHASE_ENEMY_FAILED"
-"		TASK_GET_PATH_TO_ENEMY			0"
-"		TASK_RUN_PATH					0"
-"		TASK_WAIT_FOR_MOVEMENT			0"
-""
-"	Interrupts"
-"		COND_NEW_ENEMY"
-"		COND_ENEMY_DEAD"
-"		COND_CAN_RANGE_ATTACK1"
-"		COND_HOUND_GROUP_ATTACK"
-"		COND_HOUND_GROUP_RETREAT"
+	"	Tasks"
+	"		TASK_SET_TOLERANCE_DISTANCE		30	 "
+	"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_CHASE_ENEMY_FAILED"
+	"		TASK_GET_PATH_TO_ENEMY			0"
+	"		TASK_RUN_PATH					0"
+	"		TASK_WAIT_FOR_MOVEMENT			0"
+	""
+	"	Interrupts"
+	"		COND_NEW_ENEMY"
+	"		COND_ENEMY_DEAD"
+	"		COND_CAN_RANGE_ATTACK1"
+	"		COND_HOUND_GROUP_ATTACK"
+	"		COND_HOUND_GROUP_RETREAT"
 );
 
 //=========================================================
@@ -1252,23 +1282,21 @@ SCHED_HOUND_CHASE_ENEMY,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_GROUP_ATTACK,
+	SCHED_HOUND_GROUP_ATTACK,
 
-"	Tasks "
-"		TASK_STOP_MOVING			0"
-"		TASK_FACE_ENEMY				0"
-"		TASK_SET_ACTIVITY			ACTIVITY:ACT_IDLE_ANGRY"
-"		TASK_SPEAK_SENTENCE			0"
-"		TASK_WAIT					1"
-"		TASK_SET_SCHEDULE			SCHEDULE:SCHED_HOUND_RANGE_ATTACK1"
-""
-"	Interrupts "
-"		COND_NEW_ENEMY"
-"		COND_ENEMY_DEAD"
-"		COND_HEAVY_DAMAGE"
+	"	Tasks "
+	"		TASK_STOP_MOVING			0"
+	"		TASK_FACE_ENEMY				0"
+	"		TASK_SET_ACTIVITY			ACTIVITY:ACT_IDLE_ANGRY"
+	"		TASK_SPEAK_SENTENCE			0"
+	"		TASK_WAIT					1"
+	"		TASK_SET_SCHEDULE			SCHEDULE:SCHED_HOUND_RANGE_ATTACK1"
+	""
+	"	Interrupts "
+	"		COND_NEW_ENEMY"
+	"		COND_ENEMY_DEAD"
+	"		COND_HEAVY_DAMAGE"
 );
-
-//
 
 //=========================================================
 // > SCHED_HOUND_GROUP_RETREAT
@@ -1277,23 +1305,23 @@ SCHED_HOUND_GROUP_ATTACK,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_GROUP_RETREAT,
+	SCHED_HOUND_GROUP_RETREAT,
 
-"	Tasks"
-"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_ATTACK_STRAFE"
-"		TASK_STOP_MOVING				0"
-"		TASK_WAIT						0.2"
-"		TASK_SET_TOLERANCE_DISTANCE		24"
-"		TASK_FIND_COVER_FROM_ENEMY		0"
-"		TASK_RUN_PATH					0"
-"		TASK_WAIT_FOR_MOVEMENT			0"
-"		TASK_REMEMBER					MEMORY:INCOVER"
-"		TASK_FACE_ENEMY					0"
-"		TASK_SET_ACTIVITY				ACTIVITY:ACT_IDLE"	// Translated to cover
-"		TASK_SET_SCHEDULE				SCHEDULE:SCHED_HOUND_COVER_WAIT"
-""
-"	Interrupts"
-"		COND_NEW_ENEMY"
+	"	Tasks"
+	"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_ATTACK_STRAFE"
+	"		TASK_STOP_MOVING				0"
+	"		TASK_WAIT						0.2"
+	"		TASK_SET_TOLERANCE_DISTANCE		24"
+	"		TASK_FIND_COVER_FROM_ENEMY		0"
+	"		TASK_RUN_PATH					0"
+	"		TASK_WAIT_FOR_MOVEMENT			0"
+	"		TASK_REMEMBER					MEMORY:INCOVER"
+	"		TASK_FACE_ENEMY					0"
+	"		TASK_SET_ACTIVITY				ACTIVITY:ACT_IDLE"	// Translated to cover
+	"		TASK_SET_SCHEDULE				SCHEDULE:SCHED_HOUND_COVER_WAIT"
+	""
+	"	Interrupts"
+	"		COND_NEW_ENEMY"
 );
 
 //=========================================================
@@ -1303,21 +1331,21 @@ SCHED_HOUND_GROUP_RETREAT,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_GROUP_RALLEY,
+	SCHED_HOUND_GROUP_RALLEY,
 
-"	Tasks"
-"		TASK_SET_TOLERANCE_DISTANCE		30"
-"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_ATTACK_STRAFE"
-"		TASK_GET_PATH_TO_TARGET			0"
-"		TASK_RUN_PATH					0"
-"		TASK_WAIT_FOR_MOVEMENT			0"
-""
-"	Interrupts"
-"		COND_NEW_ENEMY"
-"		COND_ENEMY_DEAD"
-"		COND_HEAVY_DAMAGE"
-"		COND_HOUND_GROUP_ATTACK"
-"		COND_HOUND_GROUP_RETREAT"
+	"	Tasks"
+	"		TASK_SET_TOLERANCE_DISTANCE		30"
+	"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_HOUND_ATTACK_STRAFE"
+	"		TASK_GET_PATH_TO_TARGET			0"
+	"		TASK_RUN_PATH					0"
+	"		TASK_WAIT_FOR_MOVEMENT			0"
+	""
+	"	Interrupts"
+	"		COND_NEW_ENEMY"
+	"		COND_ENEMY_DEAD"
+	"		COND_HEAVY_DAMAGE"
+	"		COND_HOUND_GROUP_ATTACK"
+	"		COND_HOUND_GROUP_RETREAT"
 );
 
 //=========================================================
@@ -1327,14 +1355,14 @@ SCHED_HOUND_GROUP_RALLEY,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_COVER_WAIT,
+	SCHED_HOUND_COVER_WAIT,
 
-"	Tasks"
-"		TASK_WAIT						2"
-""
-"	Interrupts"
-"		COND_SEE_ENEMY"
-"		COND_LIGHT_DAMAGE"
+	"	Tasks"
+	"		TASK_WAIT						2"
+	""
+	"	Interrupts"
+	"		COND_SEE_ENEMY"
+	"		COND_LIGHT_DAMAGE"
 );
 
 //=========================================================
@@ -1342,17 +1370,17 @@ SCHED_HOUND_COVER_WAIT,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_RANGE_ATTACK1,
+	SCHED_HOUND_RANGE_ATTACK1,
 
-"	Tasks"
-"		 TASK_STOP_MOVING			0"
-"		 TASK_SET_ACTIVITY			ACTIVITY:ACT_IDLE_ANGRY"
-"		 TASK_FACE_IDEAL			0"
-"		 TASK_RANGE_ATTACK1			0"
-""
-"	Interrupts"
-//"		COND_LIGHT_DAMAGE"	// don't interupt on small damage
-"		COND_HEAVY_DAMAGE"
+	"	Tasks"
+	"		 TASK_STOP_MOVING			0"
+	"		 TASK_SET_ACTIVITY			ACTIVITY:ACT_IDLE_ANGRY"
+	"		 TASK_FACE_IDEAL			0"
+	"		 TASK_RANGE_ATTACK1			0"
+	""
+	"	Interrupts"
+	//"		COND_LIGHT_DAMAGE"	// don't interupt on small damage
+	"		COND_HEAVY_DAMAGE"
 );
 
 //=========================================================
@@ -1360,54 +1388,12 @@ SCHED_HOUND_RANGE_ATTACK1,
 //=========================================================
 AI_DEFINE_SCHEDULE
 (
-SCHED_HOUND_HOP_RETREAT,
+	SCHED_HOUND_HOP_RETREAT,
 
-"	Tasks"
-"		 TASK_STOP_MOVING				0"
-"		 TASK_HOUND_HOP_BACK			0"
-"		 TASK_SET_SCHEDULE				SCHEDULE:SCHED_TAKE_COVER_FROM_ENEMY"
-""
-"	Interrupts"
-);
-
-//=========================================================
-// > SCHED_HOUND_PATROL_WALK_LOOP
-//=========================================================
-
-AI_DEFINE_SCHEDULE
-(
-SCHED_HOUND_PATROL_WALK_LOOP,
-
-"	Tasks"
-//	"		TASK_SET_TOLERANCE_DISTANCE		48"
-//"		TASK_SET_ROUTE_SEARCH_TIME		5"
-//"		TASK_GET_PATH_TO_RANDOM_NODE	200"
-//"		TASK_RUN_PATH					0"
-//"		TASK_WAIT_FOR_MOVEMENT			0"
-"		TASK_STOP_MOVING				0"
-"		TASK_WANDER						900540"
-"		TASK_RUN_PATH					0"
-"		TASK_WAIT_FOR_MOVEMENT			0"
-"		TASK_STOP_MOVING				0"
-"		TASK_FACE_REASONABLE			0"
-"		TASK_WAIT						3"
-"		TASK_WAIT_RANDOM				3"
-"		TASK_SET_SCHEDULE				SCHEDULE:SCHED_HOUND_PATROL_WALK_LOOP"
-""
-"	Interrupts"
-"		COND_CAN_RANGE_ATTACK1 "
-"		COND_CAN_RANGE_ATTACK2 "
-"		COND_CAN_MELEE_ATTACK1 "
-"		COND_CAN_MELEE_ATTACK2"
-"		COND_GIVE_WAY"
-"		COND_HEAR_COMBAT"
-"		COND_HEAR_DANGER"
-"		COND_HEAR_PLAYER"
-"		COND_NEW_ENEMY"
-"		COND_SEE_ENEMY"
-"		COND_SEE_FEAR"
-"		COND_LIGHT_DAMAGE"
-"		COND_HEAVY_DAMAGE"
-"		COND_SMELL"
-"		COND_PROVOKED"
+	"	Tasks"
+	"		 TASK_STOP_MOVING				0"
+	"		 TASK_HOUND_HOP_BACK			0"
+	"		 TASK_SET_SCHEDULE				SCHEDULE:SCHED_TAKE_COVER_FROM_ENEMY"
+	""
+	"	Interrupts"
 );

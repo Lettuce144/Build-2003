@@ -43,7 +43,6 @@ struct BrickbatAmmo_s
 BrickbatAmmo_s	BrickBatAmmoArray[NUM_BRICKBAT_AMMO_TYPES] =
 {
 	{ "grenade_rockbb", BRICKBAT_ROCK, 5, "models/weapons/v_bb_bottle.mdl", "models/props_junk/Rock001a.mdl" },
-	{ "grenade_beerbottle", BRICKBAT_BOTTLE, 3, "models/weapons/v_bb_bottle.mdl", "models/weapons/w_bb_bottle.mdl" },
 };
 
 IMPLEMENT_SERVERCLASS_ST(CWeaponBrickbat, DT_WeaponBrickbat)
@@ -465,6 +464,7 @@ void CWeaponBrickbat::PrimaryAttack(void)
 	// Don't fire again until fire animation has completed
 	float flSequenceEndTime = gpGlobals->curtime + SequenceDuration();
 	pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = flSequenceEndTime;
+
 
 	m_bNeedThrow = true;
 }

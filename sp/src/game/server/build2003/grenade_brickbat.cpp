@@ -120,7 +120,7 @@ void CGrenade_Brickbat::SpawnBrickbatWeapon(void)
 	// Spawn after we set the ammo type so the correct model is used
 	if (pBrickbat)
 	{
-		pBrickbat->m_iCurrentAmmoType = m_nType;
+		//pBrickbat->m_iCurrentAmmoType = m_nType;
 		pBrickbat->Spawn();
 		VPhysicsDestroyObject();
 		SetThink(NULL);
@@ -212,7 +212,7 @@ public:
 
 	void Spawn(void)
 	{
-		m_nType = BRICKBAT_ROCK;
+		
 		SetModel("models/props_junk/Rock001a.mdl");
 		BaseClass::Spawn();
 	}
@@ -224,50 +224,3 @@ public:
 };
 LINK_ENTITY_TO_CLASS(grenade_rockbb, CGrenadeRockBB);
 PRECACHE_REGISTER(grenade_rockbb);
-
-
-//=====================================================================
-//	> BeerBottle
-//=====================================================================
-class CGrenadeBottle : public CGrenade_Brickbat
-{
-public:
-	DECLARE_CLASS(CGrenadeBottle, CGrenade_Brickbat);
-
-	void Spawn(void)
-	{
-		m_nType = BRICKBAT_BOTTLE;
-		m_bExplodes = true;
-		SetModel("models/weapons/w_bb_bottle.mdl");
-		BaseClass::Spawn();
-	}
-	void Precache(void);
-	void Detonate(void);
-};
-
-void CGrenadeBottle::Precache(void)
-{
-	PrecacheModel("models/weapons/w_bb_bottle.mdl");
-
-	PrecacheScriptSound("GrenadeBottle.Detonate");
-
-	BaseClass::Precache();
-}
-
-void CGrenadeBottle::Detonate(void)
-{
-	trace_t trace;
-
-	UTIL_TraceLine(GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity(), MASK_SOLID, this, COLLISION_GROUP_NONE, &trace);
-	UTIL_DecalTrace(&trace, "BeerSplash");
-
-	EmitSound("GrenadeBottle.Detonate");
-
-	CSoundEnt::InsertSound(SOUND_COMBAT, GetAbsOrigin(), 400, 0.5);
-
-	UTIL_Remove(this);
-}
-
-LINK_ENTITY_TO_CLASS(grenade_beerbottle, CGrenadeBottle);
-PRECACHE_REGISTER(grenade_beerbottle);
-
