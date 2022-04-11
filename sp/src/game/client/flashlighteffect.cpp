@@ -32,7 +32,7 @@ extern ConVar r_flashlightdepthtexture;
 
 void r_newflashlightCallback_f( IConVar *pConVar, const char *pOldString, float flOldValue );
 
-static ConVar r_newflashlight( "r_newflashlight", "1", FCVAR_CHEAT, "", r_newflashlightCallback_f );
+static ConVar r_oldflashlight( "r_oldflashlight", "0", FCVAR_ARCHIVE, "", r_newflashlightCallback_f );
 static ConVar r_swingflashlight( "r_swingflashlight", "1", FCVAR_CHEAT );
 static ConVar r_flashlightlockposition( "r_flashlightlockposition", "0", FCVAR_CHEAT );
 static ConVar r_flashlightfov( "r_flashlightfov", "45.0", FCVAR_CHEAT );
@@ -64,7 +64,7 @@ void r_newflashlightCallback_f( IConVar *pConVar, const char *pOldString, float 
 {
 	if( engine->GetDXSupportLevel() < 70 )
 	{
-		r_newflashlight.SetValue( 0 );
+		r_oldflashlight.SetValue( 0 );
 	}	
 }
 
@@ -83,7 +83,7 @@ CFlashlightEffect::CFlashlightEffect(int nEntIndex)
 	m_pPointLight = NULL;
 	if( engine->GetDXSupportLevel() < 70 )
 	{
-		r_newflashlight.SetValue( 0 );
+		r_oldflashlight.SetValue( 0 );
 	}	
 
 #ifdef MAPBASE
@@ -440,13 +440,13 @@ void CFlashlightEffect::UpdateLight(const Vector &vecPos, const Vector &vecDir, 
 	{
 		return;
 	}
-	if( r_newflashlight.GetBool() )
+	if(r_oldflashlight.GetBool() ) //Lettuce: was forced to turn the values :(
 	{
-		UpdateLightNew( vecPos, vecDir, vecRight, vecUp );
+		UpdateLightOld(vecPos, vecDir, nDistance);
 	}
 	else
 	{
-		UpdateLightOld( vecPos, vecDir, nDistance );
+		UpdateLightNew(vecPos, vecDir, vecRight, vecUp);
 	}
 }
 

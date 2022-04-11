@@ -95,6 +95,11 @@ $Project "Server (Episodic)"
 			$File	"build2003\grenade_tripmine.h"
 			$File	"build2003\npc_crabsynth.cpp"
 			$File	"build2003\npc_crabsynth.h"
+			$File	"build2003\npc_wscanner.cpp"
+			$File	"build2003\npc_wscanner.h"
+			$File	"build2003\grenade_scanner.cpp"
+			$File	"build2003\grenade_scanner.h"
+			
 		}
 
 		$Folder	"HL2 DLL"

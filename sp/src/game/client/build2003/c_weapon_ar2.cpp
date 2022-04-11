@@ -7,11 +7,14 @@
 #include "cbase.h"
 #include "hud.h"
 #include "hudelement.h"
+#include "hud_numericdisplay.h"
 #include "hud_macros.h"
 //#include "parsemsg.h"
 #include "vgui_BasePanel.h"
 #include "c_basehlcombatweapon.h"
 #include "iclientmode.h"
+#include <vgui_controls/AnimationController.h>
+#include <vgui/ISurface.h>
 
 #define	AR2MODE_FADE_TIME			120
 #define AR2MODE_MIN_ALPHA			40 // 16
@@ -45,12 +48,15 @@ public:
 	void			MsgFunc_AR2ModeChanged(bf_read &msg);
 
 protected:
-	CPanelAnimationVarAliasType(float, icon_xpos, "icon_xpos", "0", "proportional_float");
-	CPanelAnimationVarAliasType(float, icon_ypos, "icon_ypos", "0", "proportional_float");
+	CPanelAnimationVar(vgui::HFont, m_hTextFont, "TextFont", "Default");
+	CPanelAnimationVar(Color, m_TextColor, "TextColor", "FgColor");
+	CPanelAnimationVarAliasType(float, text_xpos, "text_xpos", "8", "proportional_float");
+	CPanelAnimationVarAliasType(float, text_ypos, "text_ypos", "20", "proportional_float");
+
+
 
 private:
-	CHudTexture		*m_pZoomIcon;
-	CHudTexture		*m_pGrenadeIcon;
+
 
 	AR2Mode_t		m_currentMode;
 
@@ -59,6 +65,8 @@ private:
 
 DECLARE_HUDELEMENT(CHudAR2Mode);
 DECLARE_HUD_MESSAGE(CHudAR2Mode, AR2ModeChanged);
+
+using namespace vgui;
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -108,7 +116,6 @@ void CHudAR2Mode::ApplySchemeSettings(vgui::IScheme *scheme)
 {
 	BaseClass::ApplySchemeSettings(scheme);
 
-	SetPaintBackgroundEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -127,15 +134,6 @@ void CHudAR2Mode::Paint()
 	if (!hud_ar2_mode_icon.GetBool())
 		return;
 
-	if (!m_pZoomIcon)
-	{
-		m_pZoomIcon = gHUD.GetIcon("ar2_zoommode");
-	}
-
-	if (!m_pGrenadeIcon)
-	{
-		m_pGrenadeIcon = gHUD.GetIcon("ar2_grenademode");
-	}
 
 	int scalar;
 	int minscalar = hud_ar2_mode_full_dim.GetBool() ? 0 : AR2MODE_MIN_ALPHA;
@@ -166,19 +164,32 @@ void CHudAR2Mode::Paint()
 	Color col = gHUD.m_clrNormal;
 	col[3] = 255 * scalar;
 
+	// draw our name
+	wchar_t* text;
+
+
+
+
 	switch (m_currentMode)
 	{
 	case AR2MODE_ZOOM:
-		m_pZoomIcon->DrawSelf(icon_xpos, icon_ypos, m_pZoomIcon->Width(), m_pZoomIcon->Height(), col);
-		m_pZoomIcon->DrawSelf(icon_xpos, icon_ypos, m_pZoomIcon->Width(), m_pZoomIcon->Height(), col);
+		text = L"MODE: ZOOM";
 		break;
 	case AR2MODE_GRENADE:
-		m_pGrenadeIcon->DrawSelf(icon_xpos, icon_ypos, m_pGrenadeIcon->Width(), m_pGrenadeIcon->Height(), col);
-		m_pGrenadeIcon->DrawSelf(icon_xpos, icon_ypos, m_pGrenadeIcon->Width(), m_pGrenadeIcon->Height(), col);
+		text = L"MODE: GRENADE";
 		break;
 	default:
 		break;
 	}
+
+	surface()->DrawSetTextFont(m_hTextFont);
+	surface()->DrawSetTextColor(m_TextColor);
+	surface()->DrawSetTextPos(text_xpos, text_ypos);
+	for (wchar_t* wch = text; *wch != 0; wch++)
+	{
+		surface()->DrawUnicodeChar(*wch);
+	}
+
 }
 
 //-----------------------------------------------------------------------------

@@ -149,6 +149,7 @@ void CWeaponFrag::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatChar
 
 	switch( pEvent->event )
 	{
+		//All of these are coded in the model files :/
 		case EVENT_WEAPON_SEQUENCE_FINISHED:
 			m_fDrawbackFinished = true;
 			break;
