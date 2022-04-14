@@ -634,10 +634,6 @@ void CBasePlayer::DestroyViewModels( void )
 }
 
 #ifdef MAPBASE
-extern char g_szDefaultHandsModel[MAX_PATH];
-extern int g_iDefaultHandsSkin;
-extern int g_iDefaultHandsBody;
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -654,11 +650,6 @@ void CBasePlayer::CreateHandModel(int index, int iOtherVm)
 		vm->SetAbsOrigin(GetAbsOrigin());
 		vm->SetOwner(this);
 		vm->SetIndex(index);
-
-		vm->SetModel( g_szDefaultHandsModel );
-		vm->m_nSkin = g_iDefaultHandsSkin;
-		vm->m_nBody = g_iDefaultHandsBody;
-
 		DispatchSpawn(vm);
 		vm->FollowEntity(GetViewModel(iOtherVm), true);
 		m_hViewModel.Set(index, vm);
@@ -5427,10 +5418,6 @@ void CBasePlayer::Precache( void )
 	SetPlayerUnderwter( false );
 
 	m_iTrain = TRAIN_NEW;
-#endif
-
-#ifdef MAPBASE
-	PrecacheModel( g_szDefaultHandsModel );
 #endif
 
 	m_iClientBattery = -1;

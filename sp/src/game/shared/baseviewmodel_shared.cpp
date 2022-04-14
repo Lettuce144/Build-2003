@@ -290,15 +290,12 @@ void CBaseViewModel::AddEffects( int nEffects )
 	}
 
 #ifdef MAPBASE
-	if (GetOwningWeapon() && GetOwningWeapon()->UsesHands())
+	// Apply effect changes to any viewmodel children as well
+	// (fixes hand models)
+	for (CBaseEntity *pChild = FirstMoveChild(); pChild != NULL; pChild = pChild->NextMovePeer())
 	{
-		// If using hands, apply effect changes to any viewmodel children as well
-		// (fixes hand models)
-		for (CBaseEntity *pChild = FirstMoveChild(); pChild != NULL; pChild = pChild->NextMovePeer())
-		{
-			if (pChild->GetClassname()[0] == 'h')
-				pChild->AddEffects( nEffects );
-		}
+		if (pChild->GetClassname()[0] == 'h')
+			pChild->AddEffects( nEffects );
 	}
 #endif
 
@@ -316,15 +313,12 @@ void CBaseViewModel::RemoveEffects( int nEffects )
 	}
 
 #ifdef MAPBASE
-	if (GetOwningWeapon() && GetOwningWeapon()->UsesHands())
+	// Apply effect changes to any viewmodel children as well
+	// (fixes hand models)
+	for (CBaseEntity *pChild = FirstMoveChild(); pChild != NULL; pChild = pChild->NextMovePeer())
 	{
-		// If using hands, apply effect changes to any viewmodel children as well
-		// (fixes hand models)
-		for (CBaseEntity *pChild = FirstMoveChild(); pChild != NULL; pChild = pChild->NextMovePeer())
-		{
-			if (pChild->GetClassname()[0] == 'h')
-				pChild->RemoveEffects( nEffects );
-		}
+		if (pChild->GetClassname()[0] == 'h')
+			pChild->RemoveEffects( nEffects );
 	}
 #endif
 
@@ -363,18 +357,6 @@ void CBaseViewModel::SetWeaponModel( const char *modelname, CBaseCombatWeapon *w
 
 		bool showControlPanels = weapon && weapon->ShouldShowControlPanels();
 		SetControlPanelsActive( showControlPanels );
-	}
-#endif
-
-#ifdef MAPBASE
-	// If our owning weapon doesn't support hands, disable the hands viewmodel(s)
-	bool bSupportsHands = weapon->UsesHands();
-	for (CBaseEntity *pChild = FirstMoveChild(); pChild != NULL; pChild = pChild->NextMovePeer())
-	{
-		if (pChild->GetClassname()[0] == 'h')
-		{
-			bSupportsHands ? pChild->RemoveEffects( EF_NODRAW ) : pChild->AddEffects( EF_NODRAW );
-		}
 	}
 #endif
 }
@@ -772,13 +754,7 @@ class CHandViewModel : public CBaseViewModel
 	DECLARE_CLASS( CHandViewModel, CBaseViewModel );
 public:
 	DECLARE_NETWORKCLASS();
-
-	CBaseViewModel	*GetVMOwner();
-
-	CBaseCombatWeapon *GetOwningWeapon( void );
-
 private:
-	CHandle<CBaseViewModel> m_hVMOwner;
 };
 
 LINK_ENTITY_TO_CLASS(hand_viewmodel, CHandViewModel);
@@ -794,26 +770,4 @@ BEGIN_NETWORK_TABLE(CHandViewModel, DT_HandViewModel)
 	RecvPropInt(RECVINFO_NAME(m_hNetworkMoveParent, moveparent), 0, RecvProxy_IntToMoveParent),
 #endif
 END_NETWORK_TABLE()
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CBaseViewModel *CHandViewModel::GetVMOwner()
-{
-	if (!m_hVMOwner)
-		m_hVMOwner = assert_cast<CBaseViewModel*>(GetMoveParent());
-	return m_hVMOwner;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CBaseCombatWeapon *CHandViewModel::GetOwningWeapon()
-{
-	CBaseViewModel *pVM = GetVMOwner();
-	if (pVM)
-		return pVM->GetOwningWeapon();
-	else
-		return NULL;
-}
 #endif
