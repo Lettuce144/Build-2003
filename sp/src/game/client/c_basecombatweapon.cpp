@@ -125,15 +125,9 @@ void C_BaseCombatWeapon::OnRestore()
 
 int C_BaseCombatWeapon::GetWorldModelIndex( void )
 {
-#ifdef MAPBASE
-	int iIndex = GetOwner() ? m_iWorldModelIndex.Get() : m_iDroppedModelIndex.Get();
-#else
-	int iIndex = m_iWorldModelIndex.Get();
-#endif
-
 	if ( GameRules() )
 	{
-		const char *pBaseName = modelinfo->GetModelName( modelinfo->GetModel( iIndex ) );
+		const char *pBaseName = modelinfo->GetModelName( modelinfo->GetModel( m_iWorldModelIndex ) );
 		const char *pTranslatedName = GameRules()->TranslateEffectForVisionFilter( "weapons", pBaseName );
 
 		if ( pTranslatedName != pBaseName )
@@ -142,7 +136,7 @@ int C_BaseCombatWeapon::GetWorldModelIndex( void )
 		}
 	}
 
-	return iIndex;
+	return m_iWorldModelIndex;
 }
 
 //-----------------------------------------------------------------------------

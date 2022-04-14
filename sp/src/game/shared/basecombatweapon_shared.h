@@ -423,8 +423,6 @@ public:
 	float					GetBobScale() const;
 	float					GetSwayScale() const;
 	float					GetSwaySpeedScale() const;
-	virtual const char		*GetDroppedModel( void ) const;
-	bool					UsesHands( void ) const;
 #endif
 
 	// derive this function if you mod uses encrypted weapon info files
@@ -684,9 +682,6 @@ public:
 	// Weapon art
 	CNetworkVar( int, m_iViewModelIndex );
 	CNetworkVar( int, m_iWorldModelIndex );
-#ifdef MAPBASE
-	CNetworkVar( int, m_iDroppedModelIndex );
-#endif
 	// Sounds
 	float					m_flNextEmptySoundTime;				// delay on empty sound playing
 

@@ -186,11 +186,7 @@ void CBaseCombatWeapon::Spawn( void )
 
 	if ( GetWorldModel() )
 	{
-#ifdef MAPBASE
-		SetModel( (GetDroppedModel() && GetDroppedModel()[0]) ? GetDroppedModel() : GetWorldModel() );
-#else
 		SetModel( GetWorldModel() );
-#endif
 	}
 
 #if !defined( CLIENT_DLL )
@@ -295,18 +291,6 @@ void CBaseCombatWeapon::Precache( void )
 		{
 			m_iWorldModelIndex = CBaseEntity::PrecacheModel( GetWorldModel() );
 		}
-#ifdef MAPBASE
-		m_iDroppedModelIndex = 0;
-		if ( GetDroppedModel() && GetDroppedModel()[0] )
-		{
-			m_iDroppedModelIndex = CBaseEntity::PrecacheModel( GetDroppedModel() );
-		}
-		else
-		{
-			// Use the world model index
-			m_iDroppedModelIndex = m_iWorldModelIndex;
-		}
-#endif
 
 		// Precache sounds, too
 		for ( int i = 0; i < NUM_SHOOT_SOUND_TYPES; ++i )
@@ -496,16 +480,6 @@ float CBaseCombatWeapon::GetSwayScale() const
 float CBaseCombatWeapon::GetSwaySpeedScale() const
 {
 	return GetWpnData().m_flSwaySpeedScale;
-}
-
-const char *CBaseCombatWeapon::GetDroppedModel() const
-{
-	return GetWpnData().szDroppedModel;
-}
-
-bool CBaseCombatWeapon::UsesHands() const
-{
-	return GetWpnData().m_bUsesHands;
 }
 #endif
 
@@ -3100,7 +3074,6 @@ BEGIN_ENT_SCRIPTDESC( CBaseCombatWeapon, CBaseAnimating, "The base class for all
 
 	DEFINE_SCRIPTFUNC( GetWorldModel, "Get the weapon's world model." )
 	DEFINE_SCRIPTFUNC( GetViewModel, "Get the weapon's view model." )
-	DEFINE_SCRIPTFUNC( GetDroppedModel, "Get the weapon's unique dropped model if it has one." )
 
 	DEFINE_SCRIPTFUNC( GetWeight, "Get the weapon's weight." )
 
@@ -3395,9 +3368,6 @@ BEGIN_NETWORK_TABLE(CBaseCombatWeapon, DT_BaseCombatWeapon)
 	SendPropDataTable("LocalActiveWeaponData", 0, &REFERENCE_SEND_TABLE(DT_LocalActiveWeaponData), SendProxy_SendActiveLocalWeaponDataTable ),
 	SendPropModelIndex( SENDINFO(m_iViewModelIndex) ),
 	SendPropModelIndex( SENDINFO(m_iWorldModelIndex) ),
-#ifdef MAPBASE
-	SendPropModelIndex( SENDINFO(m_iDroppedModelIndex) ),
-#endif
 	SendPropInt( SENDINFO(m_iState ), 8, SPROP_UNSIGNED ),
 	SendPropEHandle( SENDINFO(m_hOwner) ),
 
@@ -3410,9 +3380,6 @@ BEGIN_NETWORK_TABLE(CBaseCombatWeapon, DT_BaseCombatWeapon)
 	RecvPropDataTable("LocalActiveWeaponData", 0, 0, &REFERENCE_RECV_TABLE(DT_LocalActiveWeaponData)),
 	RecvPropInt( RECVINFO(m_iViewModelIndex)),
 	RecvPropInt( RECVINFO(m_iWorldModelIndex)),
-#ifdef MAPBASE
-	RecvPropInt( RECVINFO(m_iDroppedModelIndex) ),
-#endif
 	RecvPropInt( RECVINFO(m_iState )),
 	RecvPropEHandle( RECVINFO(m_hOwner ) ),
 
