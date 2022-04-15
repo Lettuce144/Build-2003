@@ -533,7 +533,7 @@ bool CWeaponImmolator::ImmolateEntity(const CTakeDamageInfo &info, CBaseCombatCh
 				return false;
 			}
 
-			pBCC->Ignite(random->RandomFloat(15, 20));
+			pBCC->IgniteGreen(random->RandomFloat(15, 20));
 			return true;
 		}
 	}
@@ -654,10 +654,12 @@ void CImmolatorPlasmaBall::IgniteOtherIfAllowed(CBaseEntity * pOther)
 	pBreakable = dynamic_cast<CBreakableProp*>(pOther);
 	if (pBreakable)
 	{
-		pBreakable->IgniteLifetimeGreen(sk_immolator_rtbr_burn_seconds.GetInt());
+		//float TineElap;
+		pBreakable->IgniteLifetimeGreen(/*sk_immolator_rtbr_burn_seconds.GetInt()*/999999); //Forever for now
+		
 		// Don't do damage to props that are on fire
-		if (pBreakable->IsOnFire())
-			return;
+		//if (pBreakable->IsOnGreenFire())
+			//return;
 	}
 
 	// Do damage

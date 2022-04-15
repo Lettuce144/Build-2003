@@ -777,7 +777,7 @@ void CNPC_MetroPolice::Spawn( void )
 #ifdef MAPBASE
 		if ( !Weapon_OwnsThisType( STRING(gm_isz_class_SMG1) ) )
 #else
-		if ( !Weapon_OwnsThisType( "weapon_smg1" ) )
+		if ( !Weapon_OwnsThisType( "weapon_smg1"))
 #endif
 		{
 			Warning( "Warning! Metrocop is trying to use the stitch behavior but he has no smg1!\n" );

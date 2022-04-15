@@ -46,6 +46,7 @@ extern string_t gm_isz_class_357;
 extern string_t gm_isz_class_Grenade;
 extern string_t gm_isz_class_Physcannon;
 extern string_t gm_isz_class_Crossbow;
+extern string_t gm_isz_class_SMG2;
 
 extern string_t gm_isz_class_Strider;
 extern string_t gm_isz_class_Gunship;
