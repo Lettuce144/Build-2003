@@ -30,6 +30,8 @@ ConVar sk_plr_dmg_fraggrenade	( "sk_plr_dmg_fraggrenade","0");
 ConVar sk_npc_dmg_fraggrenade	( "sk_npc_dmg_fraggrenade","0");
 ConVar sk_fraggrenade_radius	( "sk_fraggrenade_radius", "0");
 
+ConVar sv_grenade_sndalaser("sv_grenade_sndalaser", "1", FCVAR_ARCHIVE, "Enable grenade light and sound");
+
 #define GRENADE_MODEL "models/Weapons/w_grenade.mdl"
 
 class CGrenadeFrag : public CBaseGrenade
@@ -128,33 +130,34 @@ void CGrenadeFrag::Spawn( void )
 	SetSize( -Vector(4,4,4), Vector(4,4,4) );
 	SetCollisionGroup( COLLISION_GROUP_WEAPON );
 	CreateVPhysics();
-
-#ifdef MAPBASE
-	if (GetThrower() && GetThrower()->IsNPC())
-	{
-		// One of OnThrowGrenade's useful applications is replacing it with another entity using point_entity_replace.
-		// However, the grenade is always able to let out a blip before being replaced, which can be confusing/undesirable.
-		// This code checks to see if OnThrowGrenade is being used for anything, in which case the first blip will be very slightly delayed.
-		// This doesn't interfere with when the grenade actually detonates and shouldn't be noticable if the grenade is kept by OnThrowGrenade anyway.
-		CAI_GrenadeUserSink *pGrenadeUser = dynamic_cast<CAI_GrenadeUserSink*>(GetThrower());
-		if (pGrenadeUser && pGrenadeUser->UsingOnThrowGrenade())
+	if (sv_grenade_sndalaser.GetInt())
+	#ifdef MAPBASE
+	{ 
+		if (GetThrower() && GetThrower()->IsNPC())
 		{
-			// We delay the blip by 0.05, so replacement must occur within that period in order to skip the blip.
-			m_flNextBlipTime = gpGlobals->curtime + 0.05f;
+			// One of OnThrowGrenade's useful applications is replacing it with another entity using point_entity_replace.
+			// However, the grenade is always able to let out a blip before being replaced, which can be confusing/undesirable.
+			// This code checks to see if OnThrowGrenade is being used for anything, in which case the first blip will be very slightly delayed.
+			// This doesn't interfere with when the grenade actually detonates and shouldn't be noticable if the grenade is kept by OnThrowGrenade anyway.
+			CAI_GrenadeUserSink *pGrenadeUser = dynamic_cast<CAI_GrenadeUserSink*>(GetThrower());
+			if (pGrenadeUser && pGrenadeUser->UsingOnThrowGrenade())
+			{
+				// We delay the blip by 0.05, so replacement must occur within that period in order to skip the blip.
+				m_flNextBlipTime = gpGlobals->curtime + 0.05f;
+			}
 		}
-	}
 
-	// Do the blip if m_flNextBlipTime wasn't changed
-	if (m_flNextBlipTime <= gpGlobals->curtime)
-	{
+		// Do the blip if m_flNextBlipTime wasn't changed
+		if (m_flNextBlipTime <= gpGlobals->curtime)
+		{
+			BlipSound();
+			m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FREQUENCY;
+		}
+	#else
 		BlipSound();
 		m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FREQUENCY;
+	#endif
 	}
-#else
-	BlipSound();
-	m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FREQUENCY;
-#endif
-
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 
 	m_combineSpawned	= false;
@@ -180,31 +183,38 @@ void CGrenadeFrag::OnRestore( void )
 //-----------------------------------------------------------------------------
 void CGrenadeFrag::CreateEffects( void )
 {
-	// Start up the eye glow
-	m_pMainGlow = CSprite::SpriteCreate( "sprites/redglow1.vmt", GetLocalOrigin(), false );
-
-	int	nAttachment = LookupAttachment( "fuse" );
-
-	if ( m_pMainGlow != NULL )
+	if (sv_grenade_sndalaser.GetInt())
 	{
-		m_pMainGlow->FollowEntity( this );
-		m_pMainGlow->SetAttachment( this, nAttachment );
-		m_pMainGlow->SetTransparency( kRenderGlow, 255, 255, 255, 200, kRenderFxNoDissipation );
-		m_pMainGlow->SetScale( 0.2f );
-		m_pMainGlow->SetGlowProxySize( 4.0f );
+		// Start up the eye glow
+		m_pMainGlow = CSprite::SpriteCreate("sprites/redglow1.vmt", GetLocalOrigin(), false);
+		
+		int	nAttachment = LookupAttachment("fuse");
+
+		if (m_pMainGlow != NULL)
+		{
+			m_pMainGlow->FollowEntity(this);
+			m_pMainGlow->SetAttachment(this, nAttachment);
+			m_pMainGlow->SetTransparency(kRenderGlow, 255, 255, 255, 200, kRenderFxNoDissipation);
+			m_pMainGlow->SetScale(0.2f);
+			m_pMainGlow->SetGlowProxySize(4.0f);
+		}
+
+		// Start up the eye trail
+		m_pGlowTrail = CSpriteTrail::SpriteTrailCreate("sprites/bluelaser1.vmt", GetLocalOrigin(), false);
+
+		if (m_pGlowTrail != NULL)
+		{
+			m_pGlowTrail->FollowEntity(this);
+			m_pGlowTrail->SetAttachment(this, nAttachment);
+			m_pGlowTrail->SetTransparency(kRenderTransAdd, 255, 0, 0, 255, kRenderFxNone);
+			m_pGlowTrail->SetStartWidth(8.0f);
+			m_pGlowTrail->SetEndWidth(1.0f);
+			m_pGlowTrail->SetLifeTime(0.5f);
+		}
 	}
-
-	// Start up the eye trail
-	m_pGlowTrail	= CSpriteTrail::SpriteTrailCreate( "sprites/bluelaser1.vmt", GetLocalOrigin(), false );
-
-	if ( m_pGlowTrail != NULL )
+	else
 	{
-		m_pGlowTrail->FollowEntity( this );
-		m_pGlowTrail->SetAttachment( this, nAttachment );
-		m_pGlowTrail->SetTransparency( kRenderTransAdd, 255, 0, 0, 255, kRenderFxNone );
-		m_pGlowTrail->SetStartWidth( 8.0f );
-		m_pGlowTrail->SetEndWidth( 1.0f );
-		m_pGlowTrail->SetLifeTime( 0.5f );
+		Msg("grenade_frag.cpp debug");
 	}
 }
 
@@ -327,17 +337,25 @@ void CGrenadeFrag::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 
 #ifdef HL2MP
 	SetTimer( FRAG_GRENADE_GRACE_TIME_AFTER_PICKUP, FRAG_GRENADE_GRACE_TIME_AFTER_PICKUP / 2);
+	m_bHasWarnedAI = true;
+#endif
+#ifdef HL2MP
 
+if(sv_grenade_sndalaser.GetInt())
+{ 
 	BlipSound();
 	m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FAST_FREQUENCY;
-	m_bHasWarnedAI = true;
+}
 #else
-	if( IsX360() )
+	if (sv_grenade_sndalaser.GetInt())
 	{
-		// Give 'em a couple of seconds to aim and throw. 
-		SetTimer( 2.0f, 1.0f);
-		BlipSound();
-		m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FAST_FREQUENCY;
+		if (IsX360())
+		{
+			// Give 'em a couple of seconds to aim and throw. 
+			SetTimer(2.0f, 1.0f);
+			BlipSound();
+			m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FAST_FREQUENCY;
+		}
 	}
 #endif
 
@@ -359,22 +377,28 @@ void CGrenadeFrag::DelayThink()
 	if( !m_bHasWarnedAI && gpGlobals->curtime >= m_flWarnAITime )
 	{
 #if !defined( CLIENT_DLL )
+		if(sv_grenade_sndalaser.GetInt())
+		{ 
 		CSoundEnt::InsertSound ( SOUND_DANGER, GetAbsOrigin(), 400, 1.5, this );
+		}
 #endif
 		m_bHasWarnedAI = true;
 	}
-	
-	if( gpGlobals->curtime > m_flNextBlipTime )
+
+	if(sv_grenade_sndalaser.GetInt())
 	{
-		BlipSound();
+		if( gpGlobals->curtime > m_flNextBlipTime )
+		{
+			BlipSound();
 		
-		if( m_bHasWarnedAI )
-		{
-			m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FAST_FREQUENCY;
-		}
-		else
-		{
-			m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FREQUENCY;
+			if( m_bHasWarnedAI )
+			{
+				m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FAST_FREQUENCY;
+			}
+			else
+			{
+				m_flNextBlipTime = gpGlobals->curtime + FRAG_GRENADE_BLIP_FREQUENCY;
+			}
 		}
 	}
 

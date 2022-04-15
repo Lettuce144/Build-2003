@@ -417,9 +417,9 @@ void CFlashlightEffect::UpdateLightOld(const Vector &vecPos, const Vector &vecDi
 	
 	falloff *= falloff;
 	
-	m_pPointLight->radius = 80;
-	m_pPointLight->color.r = m_pPointLight->color.g = m_pPointLight->color.b = 255 * falloff;
-	m_pPointLight->color.exponent = 0;
+	m_pPointLight->radius = 80; //80
+	m_pPointLight->color.r = m_pPointLight->color.g = m_pPointLight->color.b = 255;// * falloff;
+	m_pPointLight->color.exponent = 5;
 	
 	// Make it live for a bit
 	m_pPointLight->die = gpGlobals->curtime + 0.2f;

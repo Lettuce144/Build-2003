@@ -43,6 +43,8 @@ protected:
 
 	// Vehicle headlight dynamic light pointer
 	dlight_t *m_pPointLight;
+	dlight_t* m_pModelLight;
+
 	float m_flDistMod;
 
 	// Texture for flashlight

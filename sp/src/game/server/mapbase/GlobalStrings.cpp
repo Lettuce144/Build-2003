@@ -30,6 +30,7 @@ string_t gm_isz_class_357;
 string_t gm_isz_class_Grenade;
 string_t gm_isz_class_Physcannon;
 string_t gm_isz_class_Crossbow;
+string_t gm_isz_class_SMG2;
 
 string_t gm_isz_class_Strider;
 string_t gm_isz_class_Gunship;
@@ -64,6 +65,7 @@ void InitGlobalStrings()
 #ifdef HL2_DLL
 	INITIALIZE_GLOBAL_STRING(gm_isz_class_Shotgun, "weapon_shotgun");
 	INITIALIZE_GLOBAL_STRING(gm_isz_class_SMG1, "weapon_smg1");
+	INITIALIZE_GLOBAL_STRING(gm_isz_class_SMG2, "weapon_smg2");
 	INITIALIZE_GLOBAL_STRING(gm_isz_class_AR2, "weapon_ar2");
 	INITIALIZE_GLOBAL_STRING(gm_isz_class_Pistol, "weapon_pistol");
 	INITIALIZE_GLOBAL_STRING(gm_isz_class_Stunstick, "weapon_stunstick");

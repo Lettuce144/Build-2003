@@ -119,6 +119,8 @@ ConVar sv_stickysprint("sv_stickysprint", "0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBO
 #ifdef MAPBASE
 ConVar player_autoswitch_enabled( "player_autoswitch_enabled", "1", FCVAR_NONE, "This convar was added by Mapbase to toggle whether players automatically switch to their ''best'' weapon upon picking up ammo for it after it was dry." );
 #endif
+//build2003
+ConVar sv_zoomnosuit("sv_zoomnosuit", "0", FCVAR_ARCHIVE, "Allow to shoot weapons while using the suit zoom");
 
 #define	FLASH_DRAIN_TIME	 1.1111	// 100 units / 90 secs
 #define	FLASH_CHARGE_TIME	 50.0f	// 100 units / 2 secs
@@ -684,18 +686,18 @@ void CHL2_Player::Precache( void )
 void CHL2_Player::CheckSuitZoom( void )
 {
 //#ifndef _XBOX 
-	//Adrian - No zooming without a suit!
-	if ( IsSuitEquipped() )
-	{
-		if ( m_afButtonReleased & IN_ZOOM )
+	//Adrian - No zooming without a suit
+		if (IsSuitEquipped())
 		{
-			StopZooming();
-		}	
-		else if ( m_afButtonPressed & IN_ZOOM )
-		{
-			StartZooming();
+			if (m_afButtonReleased & IN_ZOOM)
+			{
+				StopZooming();
+			}
+			else if (m_afButtonPressed & IN_ZOOM)
+			{
+				StartZooming();
+			}
 		}
-	}
 //#endif//_XBOX
 }
 
@@ -1107,30 +1109,32 @@ void CHL2_Player::PreThink(void)
 
 	// Update weapon's ready status
 	UpdateWeaponPosture();
-
-	// Disallow shooting while zooming
-	if ( IsX360() )
+	if (!sv_zoomnosuit.GetBool())
 	{
-		if ( IsZooming() )
+		// Disallow shooting while zooming
+		if (IsX360())
 		{
-			if( GetActiveWeapon() && !GetActiveWeapon()->IsWeaponZoomed() )
+			if (IsZooming())
 			{
-				// If not zoomed because of the weapon itself, do not attack.
-				m_nButtons &= ~(IN_ATTACK|IN_ATTACK2);
+				if (GetActiveWeapon() && !GetActiveWeapon()->IsWeaponZoomed())
+				{
+					// If not zoomed because of the weapon itself, do not attack.
+					m_nButtons &= ~(IN_ATTACK | IN_ATTACK2);
+				}
 			}
 		}
-	}
-	else
-	{
-		if ( m_nButtons & IN_ZOOM )
+		else
 		{
-			//FIXME: Held weapons like the grenade get sad when this happens
-	#ifdef HL2_EPISODIC
-			// Episodic allows players to zoom while using a func_tank
-			CBaseCombatWeapon* pWep = GetActiveWeapon();
-			if ( !m_hUseEntity || ( pWep && pWep->IsWeaponVisible() ) )
-	#endif
-			m_nButtons &= ~(IN_ATTACK|IN_ATTACK2);
+			if (m_nButtons & IN_ZOOM)
+			{
+				//FIXME: Held weapons like the grenade get sad when this happens
+#ifdef HL2_EPISODIC
+		// Episodic allows players to zoom while using a func_tank
+				CBaseCombatWeapon* pWep = GetActiveWeapon();
+				if (!m_hUseEntity || (pWep && pWep->IsWeaponVisible()))
+#endif
+					m_nButtons &= ~(IN_ATTACK | IN_ATTACK2);
+			}
 		}
 	}
 }
