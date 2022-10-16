@@ -32,9 +32,6 @@
 #include "gib.h"
 #include "CRagdollMagnet.h"
 #endif
-#ifdef MAPBASE_VSCRIPT
-#include "mapbase/vscript_funcs_shared.h"
-#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -305,7 +302,7 @@ BEGIN_ENT_SCRIPTDESC( CBaseAnimating, CBaseEntity, "Animating models" )
 	DEFINE_SCRIPTFUNC( GetNumBones, "Get the number of bones" )
 	DEFINE_SCRIPTFUNC( GetSequence, "Gets the current sequence" )
 	DEFINE_SCRIPTFUNC( SetSequence, "Sets the current sequence" )
-	DEFINE_SCRIPTFUNC( SequenceLoops, "Does the current sequence loop?" )
+	DEFINE_SCRIPTFUNC( SequenceLoops, "Loops the current sequence" )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptSequenceDuration, "SequenceDuration", "Get the specified sequence duration" )
 	DEFINE_SCRIPTFUNC( LookupSequence, "Gets the index of the specified sequence name" )
 	DEFINE_SCRIPTFUNC( LookupActivity, "Gets the ID of the specified activity name" )
@@ -318,8 +315,6 @@ BEGIN_ENT_SCRIPTDESC( CBaseAnimating, CBaseEntity, "Animating models" )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptSelectWeightedSequence, "SelectWeightedSequence", "Selects a sequence for the specified activity ID" )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptSelectHeaviestSequence, "SelectHeaviestSequence", "Selects the sequence with the heaviest weight for the specified activity ID" )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetSequenceKeyValues, "GetSequenceKeyValues", "Get a KeyValue class instance on the specified sequence. WARNING: This uses the same KeyValue pointer as GetModelKeyValues!" )
-	DEFINE_SCRIPTFUNC( ResetSequenceInfo, "" )
-	DEFINE_SCRIPTFUNC( StudioFrameAdvance, "" )
 	DEFINE_SCRIPTFUNC( GetPlaybackRate, "" )
 	DEFINE_SCRIPTFUNC( SetPlaybackRate, "" )
 	DEFINE_SCRIPTFUNC( GetCycle, "" )
@@ -511,11 +506,6 @@ void CBaseAnimating::StudioFrameAdvanceInternal( CStudioHdr *pStudioHdr, float f
 	float flNewCycle = GetCycle() + flCycleDelta;
 	if (flNewCycle < 0.0 || flNewCycle >= 1.0) 
 	{
-		if (flNewCycle >= 1.0f)
-		{
-			ReachedEndOfSequence();
-		}
-
 		if (m_bSequenceLoops)
 		{
 			flNewCycle -= (int)(flNewCycle);
@@ -1301,7 +1291,7 @@ bool CBaseAnimating::ScriptHookHandleAnimEvent( animevent_t *pEvent )
 {
 	if (m_ScriptScope.IsInitialized() && g_Hook_HandleAnimEvent.CanRunInScope(m_ScriptScope))
 	{
-		HSCRIPT hEvent = g_pScriptVM->RegisterInstance( reinterpret_cast<scriptanimevent_t*>(pEvent) );
+		HSCRIPT hEvent = g_pScriptVM->RegisterInstance( pEvent );
 
 		// event
 		ScriptVariant_t args[] = { hEvent };
@@ -1950,7 +1940,7 @@ ConVar ai_setupbones_debug( "ai_setupbones_debug", "0", 0, "Shows that bones tha
 
 
 
-bool CBaseAnimating::CanSkipAnimation( void )
+inline bool CBaseAnimating::CanSkipAnimation( void )
 {
 	if ( !sv_pvsskipanimation.GetBool() )
 		return false;

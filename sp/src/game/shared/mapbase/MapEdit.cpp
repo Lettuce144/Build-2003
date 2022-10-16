@@ -409,6 +409,7 @@ public:
 
 					pkvClassname = pkvClassname->GetNextKey();
 				}
+				pkvClassname->deleteThis();
 			}
 			else if (FStrEq(pNodeName, "edit"))
 			{
@@ -431,6 +432,7 @@ public:
 
 					pName = pName->GetNextKey();
 				}
+				pName->deleteThis();
 			}
 			else if (FStrEq(pNodeName, "delete"))
 			{
@@ -453,6 +455,7 @@ public:
 
 					pName = pName->GetNextKey();
 				}
+				pName->deleteThis();
 			}
 			else if (FStrEq(pNodeName, "fire"))
 			{
@@ -461,7 +464,7 @@ public:
 				{
 					pNodeName = pName->GetName();
 
-					string_t pInputName = NULL_STRING;
+					const char *pInputName = NULL;
 					variant_t varInputParam;
 					float flInputDelay = 0.0f;
 					CBaseEntity *pActivator = NULL;
@@ -477,7 +480,7 @@ public:
 						{
 							// Input name
 							case 0:
-								pInputName = AllocPooledString(inputparams); break;
+								pInputName = inputparams; break;
 							// Input parameter
 							case 1:
 								varInputParam.SetString(AllocPooledString(inputparams)); break;
@@ -497,10 +500,9 @@ public:
 						iter++;
 						inputparams = strtok(NULL, ",");
 					}
-					free(pszValue);
 
 					DebugMsg("MapEdit Debug: Firing input %s on %s\n", pInputName, pNodeName);
-					g_EventQueue.AddEvent(pNodeName, STRING(pInputName), varInputParam, flInputDelay, pActivator, pCaller, iOutputID);
+					g_EventQueue.AddEvent(pNodeName, pInputName, varInputParam, flInputDelay, pActivator, pCaller, iOutputID);
 
 					pName = pName->GetNextKey();
 				}
@@ -522,10 +524,12 @@ public:
 
 					pkvNodeData = pkvNodeData->GetNextKey();
 				}
+				pkvNodeData->deleteThis();
 			}
 
 			pkvNode = pkvNode->GetNextKey();
 		}
+		pkvNode->deleteThis();
 	}
 
 	void SpawnMapEdit(const char *pFile = NULL)
@@ -884,8 +888,8 @@ void CC_MapEdit_Print( const CCommand& args )
 				pkvNode = pkvNode->GetNextKey();
 			}
 
+			pkvNode->deleteThis();
 		}
-		pkvFile->deleteThis();
 	}
 }
 static ConCommand mapedit_print("mapedit_print", CC_MapEdit_Print, "Prints a mapedit file in the console.");

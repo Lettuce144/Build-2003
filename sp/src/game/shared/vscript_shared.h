@@ -45,8 +45,6 @@ extern CBaseEntityScriptInstanceHelper g_BaseEntityScriptInstanceHelper;
 #ifdef MAPBASE_VSCRIPT
 void RegisterSharedScriptConstants();
 void RegisterSharedScriptFunctions();
-
-void RunAddonScripts();
 #endif
 
 #endif // VSCRIPT_SHARED_H

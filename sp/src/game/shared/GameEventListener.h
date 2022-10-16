@@ -25,7 +25,7 @@ public:
 	{
 	}
 
-	virtual ~CGameEventListener()
+	~CGameEventListener()
 	{
 		StopListeningForAllEvents();
 	}

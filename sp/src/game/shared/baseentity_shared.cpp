@@ -1617,7 +1617,7 @@ typedef CTraceFilterSimpleList CBulletsTraceFilter;
 void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 {
 #if defined(MAPBASE_VSCRIPT) && defined(GAME_DLL)
-	if ( m_ScriptScope.IsInitialized() && g_Hook_FireBullets.CanRunInScope( m_ScriptScope ) )
+	if (m_ScriptScope.IsInitialized())
 	{
 		HSCRIPT hInfo = g_pScriptVM->RegisterInstance( const_cast<FireBulletsInfo_t*>(&info) );
 
@@ -1935,11 +1935,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			{
 				flActualDamage = g_pGameRules->GetAmmoDamage( pAttacker, tr.m_pEnt, info.m_iAmmoType );
 			}
-#ifdef MAPBASE
-			else if ((info.m_nFlags & FIRE_BULLETS_NO_AUTO_GIB_TYPE) == 0)
-#else
 			else
-#endif
 			{
 				nActualDamageType = nDamageType | ((flActualDamage > 16) ? DMG_ALWAYSGIB : DMG_NEVERGIB );
 			}
@@ -2401,66 +2397,7 @@ void CBaseEntity::ModifyEmitSoundParams( EmitSound_t &params )
 		params.m_pSoundName = GameRules()->TranslateEffectForVisionFilter( "sounds", params.m_pSoundName );
 	}
 #endif
-
-#ifdef MAPBASE_VSCRIPT
-	if (m_ScriptScope.IsInitialized() && g_Hook_ModifyEmitSoundParams.CanRunInScope( m_ScriptScope ))
-	{
-		HSCRIPT hParams = g_pScriptVM->RegisterInstance( reinterpret_cast<ScriptEmitSound_t*>(&params) );
-
-		// params
-		ScriptVariant_t functionReturn;
-		ScriptVariant_t args[] = { ScriptVariant_t( hParams ) };
-		g_Hook_ModifyEmitSoundParams.Call( m_ScriptScope, &functionReturn, args );
-
-		g_pScriptVM->RemoveInstance( hParams );
-	}
-#endif
 }
-
-#if defined(MAPBASE) && defined(GAME_DLL)
-void CBaseEntity::ModifySentenceParams( int &iSentenceIndex, int &iChannel, float &flVolume, soundlevel_t &iSoundlevel, int &iFlags, int &iPitch,
-	const Vector **pOrigin, const Vector **pDirection, bool &bUpdatePositions, float &soundtime, int &iSpecialDSP, int &iSpeakerIndex )
-{
-#ifdef MAPBASE_VSCRIPT
-	if (m_ScriptScope.IsInitialized() && g_Hook_ModifySentenceParams.CanRunInScope( m_ScriptScope ))
-	{
-		// This is a bit of a hack, but for consistency with ModifyEmitSoundParams, put them into an EmitSound_t params
-		ScriptEmitSound_t params;
-		params.m_pSoundName = engine->SentenceNameFromIndex( iSentenceIndex );
-		params.m_nChannel = iChannel;
-		params.m_flVolume = flVolume;
-		params.m_SoundLevel = iSoundlevel;
-		params.m_nFlags = iFlags;
-		params.m_nPitch = iPitch;
-		params.m_pOrigin = *pOrigin;
-		params.m_flSoundTime = soundtime;
-		params.m_nSpecialDSP = iSpecialDSP;
-		params.m_nSpeakerEntity = iSpeakerIndex;
-
-		HSCRIPT hParams = g_pScriptVM->RegisterInstance( &params );
-
-		// params
-		ScriptVariant_t functionReturn;
-		ScriptVariant_t args[] = { ScriptVariant_t( hParams ) };
-		if (g_Hook_ModifySentenceParams.Call( m_ScriptScope, &functionReturn, args ))
-		{
-			iSentenceIndex = engine->SentenceIndexFromName( params.m_pSoundName );
-			iChannel = params.m_nChannel;
-			flVolume = params.m_flVolume;
-			iSoundlevel = params.m_SoundLevel;
-			iFlags = params.m_nFlags;
-			iPitch = params.m_nPitch;
-			*pOrigin = params.m_pOrigin;
-			soundtime = params.m_flSoundTime;
-			iSpecialDSP = params.m_nSpecialDSP;
-			iSpeakerIndex = params.m_nSpeakerEntity;
-		}
-
-		g_pScriptVM->RemoveInstance( hParams );
-	}
-#endif
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // These methods encapsulate MOVETYPE_FOLLOW, which became obsolete
@@ -2780,20 +2717,13 @@ HSCRIPT CBaseEntity::ScriptGetPhysicsObject( void )
 		return NULL;
 }
 
-
-#ifdef GAME_DLL
-#define SCRIPT_NEVER_THINK TICK_NEVER_THINK
-#else
-#define SCRIPT_NEVER_THINK CLIENT_THINK_NEVER
-#endif
-
 static inline void ScriptStopContextThink( scriptthinkfunc_t *context )
 {
 	Assert( context->m_hfnThink );
-	Assert( context->m_flNextThink == SCRIPT_NEVER_THINK );
 
 	g_pScriptVM->ReleaseScript( context->m_hfnThink );
 	context->m_hfnThink = NULL;
+	//context->m_nNextThinkTick = TICK_NEVER_THINK;
 }
 
 //-----------------------------------------------------------------------------
@@ -2802,49 +2732,55 @@ static inline void ScriptStopContextThink( scriptthinkfunc_t *context )
 void CBaseEntity::ScriptContextThink()
 {
 	float flNextThink = FLT_MAX;
-	float flScheduled = 0.0f;
-
-	ScriptVariant_t arg = m_hScriptInstance;
+	int nScheduledTick = 0;
 
 	for ( int i = 0; i < m_ScriptThinkFuncs.Count(); ++i )
 	{
 		scriptthinkfunc_t *cur = m_ScriptThinkFuncs[i];
 
-		if ( cur->m_flNextThink == SCRIPT_NEVER_THINK )
+		if ( cur->m_nNextThinkTick == TICK_NEVER_THINK )
 		{
 			continue;
 		}
 
-		if ( cur->m_flNextThink > gpGlobals->curtime )
+		if ( cur->m_nNextThinkTick > gpGlobals->tickcount )
 		{
-			if ( ( flScheduled == 0.0f ) || ( flScheduled > cur->m_flNextThink ) )
+			// There is more to execute, don't stop thinking if the rest are done.
+
+			// Find the shortest schedule
+			if ( !nScheduledTick || nScheduledTick > cur->m_nNextThinkTick )
 			{
-				flScheduled = cur->m_flNextThink;
+				nScheduledTick = cur->m_nNextThinkTick;
 			}
 			continue;
 		}
 
 #ifdef _DEBUG
 		// going to run the script func
-		cur->m_flNextThink = 0;
+		cur->m_nNextThinkTick = 0;
 #endif
 
 		ScriptVariant_t varReturn;
 
-#ifndef CLIENT_DLL
 		if ( !cur->m_bNoParam )
 		{
-#endif
-			g_pScriptVM->ExecuteFunction( cur->m_hfnThink, &arg, 1, &varReturn, NULL, true );
-#ifndef CLIENT_DLL
+			ScriptVariant_t arg = m_hScriptInstance;
+			if ( g_pScriptVM->ExecuteFunction( cur->m_hfnThink, &arg, 1, &varReturn, NULL, true ) == SCRIPT_ERROR )
+			{
+				cur->m_nNextThinkTick = TICK_NEVER_THINK;
+				continue;
+			}
 		}
 		else
 		{
-			g_pScriptVM->ExecuteFunction( cur->m_hfnThink, NULL, 0, &varReturn, NULL, true );
+			if ( g_pScriptVM->ExecuteFunction( cur->m_hfnThink, NULL, 0, &varReturn, NULL, true ) == SCRIPT_ERROR )
+			{
+				cur->m_nNextThinkTick = TICK_NEVER_THINK;
+				continue;
+			}
 		}
-#endif
 
-		if ( cur->m_flNextThink == SCRIPT_NEVER_THINK )
+		if ( cur->m_nNextThinkTick == TICK_NEVER_THINK )
 		{
 			// stopped from script while thinking
 			continue;
@@ -2853,14 +2789,13 @@ void CBaseEntity::ScriptContextThink()
 		float flReturn;
 		if ( !varReturn.AssignTo( &flReturn ) )
 		{
-			varReturn.Free();
-			cur->m_flNextThink = SCRIPT_NEVER_THINK;
+			cur->m_nNextThinkTick = TICK_NEVER_THINK;
 			continue;
 		}
 
 		if ( flReturn < 0.0f )
 		{
-			cur->m_flNextThink = SCRIPT_NEVER_THINK;
+			cur->m_nNextThinkTick = TICK_NEVER_THINK;
 			continue;
 		}
 
@@ -2869,60 +2804,95 @@ void CBaseEntity::ScriptContextThink()
 			flNextThink = flReturn;
 		}
 
-		cur->m_flNextThink = gpGlobals->curtime + flReturn - 0.001f;
+		cur->m_nNextThinkTick = TIME_TO_TICKS( gpGlobals->curtime + flReturn );
 	}
 
 	// deferred safe removal
 	for ( int i = 0; i < m_ScriptThinkFuncs.Count(); )
 	{
-		scriptthinkfunc_t *cur = m_ScriptThinkFuncs[i];
-		if ( cur->m_flNextThink == SCRIPT_NEVER_THINK )
+		if ( m_ScriptThinkFuncs[i]->m_nNextThinkTick == TICK_NEVER_THINK )
 		{
-			ScriptStopContextThink( cur );
-			delete cur;
+			ScriptStopContextThink( m_ScriptThinkFuncs[i] );
+			delete m_ScriptThinkFuncs[i];
 			m_ScriptThinkFuncs.Remove(i);
 		}
 		else ++i;
 	}
 
-	if ( flNextThink < FLT_MAX )
-	{
-		if ( flScheduled > 0.0f )
-		{
-			flNextThink = min( gpGlobals->curtime + flNextThink, flScheduled );
-		}
-		else
-		{
-			flNextThink = gpGlobals->curtime + flNextThink;
-		}
-	}
-	else
-	{
-		if ( flScheduled > 0.0f )
-		{
-			flNextThink = flScheduled;
-		}
-		else
-		{
-			flNextThink = SCRIPT_NEVER_THINK;
-		}
-	}
+	bool bNewNext = flNextThink < FLT_MAX;
 
 #ifdef _DEBUG
 #ifdef GAME_DLL
-	int nNextThinkTick = GetNextThinkTick("ScriptContextThink");
-	float flNextThinkTime = TICKS_TO_TIME(nNextThinkTick);
-
-	// If internal next think tick is earlier than what we have here with flNextThink,
-	// whoever set that think may fail. In worst case scenario the entity may stop thinking.
-	if ( nNextThinkTick > gpGlobals->tickcount )
-	{
-		if ( flNextThink == SCRIPT_NEVER_THINK )
-			Assert(0);
-		if ( flNextThinkTime < flNextThink )
-			Assert(0);
-	}
+	int nNextThinkTick = GetNextThinkTick("ScriptContextThink"); // -1
+#else
+	int nNextThinkTick = GetNextThinkTick(); // 0
 #endif
+	if ( ( nNextThinkTick <= 0 ) || ( nNextThinkTick >= nScheduledTick ) || ( nNextThinkTick == gpGlobals->tickcount ) )
+	{
+#endif
+		if ( nScheduledTick )
+		{
+			float flScheduledTime = TICKS_TO_TIME( nScheduledTick );
+
+			if ( bNewNext )
+			{
+				flNextThink = min( gpGlobals->curtime + flNextThink, flScheduledTime );
+			}
+			else
+			{
+				flNextThink = flScheduledTime;
+			}
+		}
+		else
+		{
+			if ( bNewNext )
+			{
+				flNextThink = gpGlobals->curtime + flNextThink;
+			}
+			else
+			{
+#ifdef GAME_DLL
+				flNextThink = TICK_NEVER_THINK;
+#else
+				flNextThink = CLIENT_THINK_NEVER;
+#endif
+			}
+		}
+#ifdef _DEBUG
+	}
+	else
+	{
+		// Next think was set (from script) to a sooner tick while thinking?
+		Assert(0);
+
+		if ( nScheduledTick )
+		{
+			int nNextSchedule = min( nScheduledTick, nNextThinkTick );
+			float flNextSchedule = TICKS_TO_TIME( nNextSchedule );
+
+			if ( bNewNext )
+			{
+				flNextThink = min( gpGlobals->curtime + flNextThink, flNextSchedule );
+			}
+			else
+			{
+				flNextThink = flNextSchedule;
+			}
+		}
+		else
+		{
+			float nextthink = TICKS_TO_TIME( nNextThinkTick );
+
+			if ( bNewNext )
+			{
+				flNextThink = min( gpGlobals->curtime + flNextThink, nextthink );
+			}
+			else
+			{
+				flNextThink = nextthink;
+			}
+		}
+	}
 #endif
 
 #ifdef GAME_DLL
@@ -2932,10 +2902,8 @@ void CBaseEntity::ScriptContextThink()
 #endif
 }
 
-#ifndef CLIENT_DLL
 // see ScriptSetThink
 static bool s_bScriptContextThinkNoParam = false;
-#endif
 
 //-----------------------------------------------------------------------------
 //
@@ -2953,7 +2921,7 @@ void CBaseEntity::ScriptSetContextThink( const char* szContext, HSCRIPT hFunc, f
 #endif
 
 	scriptthinkfunc_t *pf = NULL;
-	unsigned hash = szContext ? HashString( szContext ) : 0;
+	unsigned short hash = ( szContext && *szContext ) ? HashString( szContext ) : 0;
 
 	FOR_EACH_VEC( m_ScriptThinkFuncs, i )
 	{
@@ -2975,16 +2943,14 @@ void CBaseEntity::ScriptSetContextThink( const char* szContext, HSCRIPT hFunc, f
 			m_ScriptThinkFuncs.SetGrowSize(1);
 			m_ScriptThinkFuncs.AddToTail( pf );
 
-			pf->m_iContextHash = hash;
-#ifndef CLIENT_DLL
 			pf->m_bNoParam = s_bScriptContextThinkNoParam;
-#endif
+			pf->m_iContextHash = hash;
 		}
 		// update existing
 		else
 		{
 #ifdef _DEBUG
-			if ( pf->m_flNextThink == 0 )
+			if ( pf->m_nNextThinkTick == 0 )
 			{
 				Warning("Script think ('%s') was changed while it was thinking!\n", szContext);
 			}
@@ -2995,29 +2961,31 @@ void CBaseEntity::ScriptSetContextThink( const char* szContext, HSCRIPT hFunc, f
 		float nextthink = gpGlobals->curtime + flTime;
 
 		pf->m_hfnThink = hFunc;
-		pf->m_flNextThink = nextthink;
+		pf->m_nNextThinkTick = TIME_TO_TICKS( nextthink );
 
 #ifdef GAME_DLL
 		int nexttick = GetNextThinkTick( RegisterThinkContext( "ScriptContextThink" ) );
-		if ( nexttick <= 0 || TICKS_TO_TIME(nexttick) > nextthink )
-		{
-			SetContextThink( &CBaseEntity::ScriptContextThink, nextthink, "ScriptContextThink" );
-		}
 #else
-		{
-			// let it self adjust
-			SetNextClientThink( gpGlobals->curtime );
-		}
+		int nexttick = GetNextThinkTick();
 #endif
+
+		// sooner than next think
+		if ( nexttick <= 0 || nexttick > pf->m_nNextThinkTick )
+		{
+#ifdef GAME_DLL
+			SetContextThink( &CBaseEntity::ScriptContextThink, nextthink, "ScriptContextThink" );
+#else
+			SetNextClientThink( nextthink );
+#endif
+		}
 	}
 	// null func input, think exists
 	else if ( pf )
 	{
-		pf->m_flNextThink = SCRIPT_NEVER_THINK;
+		pf->m_nNextThinkTick = TICK_NEVER_THINK;
 	}
 }
 
-#ifndef CLIENT_DLL
 //-----------------------------------------------------------------------------
 // m_bNoParam and s_bScriptContextThinkNoParam exist only to keep backwards compatibility
 // and are an alternative to this script closure:
@@ -3027,6 +2995,7 @@ void CBaseEntity::ScriptSetContextThink( const char* szContext, HSCRIPT hFunc, f
 //		SetContextThink( "", function(_){ return func() }, time )
 //	}
 //-----------------------------------------------------------------------------
+#ifndef CLIENT_DLL
 void CBaseEntity::ScriptSetThink( HSCRIPT hFunc, float time )
 {
 	s_bScriptContextThinkNoParam = true;

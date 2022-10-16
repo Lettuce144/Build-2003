@@ -347,8 +347,6 @@ public:
 #ifdef MAPBASE_VSCRIPT
 	HSCRIPT				GetScriptInstance();
 
-	static ScriptHook_t	g_Hook_OnMapLoaded;
-
 	// VScript functions
 	ALLOW_SCRIPT_ACCESS();
 private:
@@ -403,10 +401,6 @@ extern	bool		g_DisableWaterLighting;
 extern	bool		g_bAllowDetailCracks;
 extern	bool		g_bNoVirtualMesh;
 extern	bool		g_bNoHiddenManifestMaps;
-#ifdef MAPBASE
-extern bool			g_bPropperInsertAllAsStatic;
-extern bool			g_bPropperStripEntities;
-#endif
 extern	char		outbase[32];
 
 extern	char	source[1024];

@@ -118,11 +118,6 @@ ConVar sv_stickysprint("sv_stickysprint", "0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBO
 
 #ifdef MAPBASE
 ConVar player_autoswitch_enabled( "player_autoswitch_enabled", "1", FCVAR_NONE, "This convar was added by Mapbase to toggle whether players automatically switch to their ''best'' weapon upon picking up ammo for it after it was dry." );
-
-#ifdef SP_ANIM_STATE
-ConVar hl2_use_sp_animstate( "hl2_use_sp_animstate", "1", FCVAR_NONE, "Allows SP HL2 players to use HL2:DM animations for custom player models. (changes may not apply until model is reloaded)" );
-#endif
-
 #endif
 //build2003
 ConVar sv_zoomnosuit("sv_zoomnosuit", "0", FCVAR_ARCHIVE, "Allow to shoot weapons while using the suit zoom");
@@ -266,7 +261,6 @@ public:
 
 	void InputSetHandModel( inputdata_t &inputdata );
 	void InputSetHandModelSkin( inputdata_t &inputdata );
-	void InputSetHandModelBodyGroup( inputdata_t &inputdata );
 
 	void InputSetPlayerModel( inputdata_t &inputdata );
 	void InputSetPlayerDrawExternally( inputdata_t &inputdata );
@@ -333,41 +327,39 @@ public:
 	}
 
 	// Will the command point change?
-	// True = Command point changes
-	// False = Comand point doesn't change
-	bool TestRedirect(Vector *vecNewCommandPoint, CHL2_Player *pPlayer)
+	// True = Judged guilty and changed.
+	// False = Judged not guilty and unchanged.
+	bool GetVerdict(Vector *defendant, CHL2_Player *pPlayer)
 	{
-		// Output the goal before doing anything else.
-		m_OnCommandGoal.Set(*vecNewCommandPoint, pPlayer, this);
+		// Deliver goal to relevant destinations before sentencing.
+		m_OnCommandGoal.Set(*defendant, pPlayer, this);
 
 		if (m_target == NULL_STRING)
 		{
-			// Not targeting anything. Don't redirect and just leave it at the output
+			// Abort sentencing.
 			return false;
 		}
 		else if (FStrEq(STRING(m_target), "-1"))
 		{
-			// Completely cancel the squad command.
-			*vecNewCommandPoint = vec3_origin;
-			return true;
+			// Deliver verdict immediately.
+			*defendant = Vector(0, 0, 0);
+			return false;
 		}
 		else
 		{
+			// Locate entity of interest.
 			// Player is caller.
 			// Player squad representative is activator.
 			CBaseEntity *pEntOfInterest = gEntList.FindEntityGeneric(NULL, STRING(m_target), this, pPlayer->GetSquadCommandRepresentative(), pPlayer);
 			if (pEntOfInterest)
 			{
-				// Use the entity's absolute origin as the new command point.
-				*vecNewCommandPoint = pEntOfInterest->GetAbsOrigin();
+				// Deliver their local origin.
+				*defendant = pEntOfInterest->GetLocalOrigin();
 				return true;
-			}
-			else
-			{
-				Warning("%s couldn't find target entity \"%s\"\n", GetDebugName(), STRING(m_target));
 			}
 		}
 
+		// No sentence.
 		return false;
 	}
 
@@ -625,10 +617,6 @@ BEGIN_ENT_SCRIPTDESC( CHL2_Player, CBasePlayer, "The HL2 player entity." )
 	DEFINE_SCRIPTFUNC( RemoveCustomSuitDevice, "Removes a custom suit device ID. (1-3)" )
 	DEFINE_SCRIPTFUNC( IsCustomSuitDeviceActive, "Checks if a custom suit device is active." )
 
-#ifdef SP_ANIM_STATE
-	DEFINE_SCRIPTFUNC( AddAnimStateLayer, "Adds a custom sequence index as a misc. layer for the singleplayer anim state, wtih parameters for blending in/out, setting the playback rate, holding the animation at the end, and only playing when the player is still." )
-#endif
-
 END_SCRIPTDESC();
 #endif
 
@@ -674,9 +662,6 @@ CSuitPowerDevice SuitDeviceCustom[] =
 IMPLEMENT_SERVERCLASS_ST(CHL2_Player, DT_HL2_Player)
 	SendPropDataTable(SENDINFO_DT(m_HL2Local), &REFERENCE_SEND_TABLE(DT_HL2Local), SendProxy_SendLocalDataTable),
 	SendPropBool( SENDINFO(m_fIsSprinting) ),
-#ifdef SP_ANIM_STATE
-	SendPropFloat( SENDINFO(m_flAnimRenderYaw), 0, SPROP_NOSCALE ),
-#endif
 END_SEND_TABLE()
 
 
@@ -1162,16 +1147,6 @@ void CHL2_Player::PostThink( void )
 	{
 		 HandleAdmireGlovesAnimation();
 	}
-
-#ifdef SP_ANIM_STATE
-	if (m_pPlayerAnimState)
-	{
-		QAngle angEyeAngles = EyeAngles();
-		m_pPlayerAnimState->Update( angEyeAngles.y, angEyeAngles.x );
-
-		m_flAnimRenderYaw.Set( m_pPlayerAnimState->GetRenderAngles().y );
-	}
-#endif
 }
 
 void CHL2_Player::StartAdmireGlovesAnimation( void )
@@ -1267,10 +1242,6 @@ Class_T  CHL2_Player::Classify ( void )
 		if(IsInAVehicle())
 		{
 			IServerVehicle *pVehicle = GetVehicle();
-#ifdef MAPBASE
-			if (!pVehicle)
-				return CLASS_PLAYER;
-#endif
 			return pVehicle->ClassifyPassenger( this, CLASS_PLAYER );
 		}
 		else
@@ -1385,108 +1356,193 @@ void CHL2_Player::SpawnedAtPoint( CBaseEntity *pSpawnPoint )
 
 //-----------------------------------------------------------------------------
 
-ConVar player_use_anim_enabled( "player_use_anim_enabled", "1" );
-ConVar player_use_anim_heavy_mass( "player_use_anim_heavy_mass", "20.0" );
+ConVar hl2_use_hl2dm_anims( "hl2_use_hl2dm_anims", "0", FCVAR_NONE, "Allows SP HL2 players to use HL2:DM animations (for custom player models)" );
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-Activity CHL2_Player::Weapon_TranslateActivity( Activity baseAct, bool *pRequired )
+void CHL2_Player::ResetAnimation( void )
 {
-	Activity weaponTranslation = BaseClass::Weapon_TranslateActivity( baseAct, pRequired );
-	
-#if EXPANDED_HL2DM_ACTIVITIES
-	// +USE activities
-	if ( m_hUseEntity && player_use_anim_enabled.GetBool() )
-	{
-		CBaseEntity* pHeldEnt = GetPlayerHeldEntity( this );
-		float flMass = pHeldEnt ?
-			(pHeldEnt->VPhysicsGetObject() ? PlayerPickupGetHeldObjectMass( m_hUseEntity, pHeldEnt->VPhysicsGetObject() ) : player_use_anim_heavy_mass.GetFloat()) :
-			(m_hUseEntity->VPhysicsGetObject() ? m_hUseEntity->GetMass() : player_use_anim_heavy_mass.GetFloat());
-		if ( flMass >= player_use_anim_heavy_mass.GetFloat() )
-		{
-			// Heavy versions
-			switch (baseAct)
-			{
-				case ACT_HL2MP_IDLE:			weaponTranslation = ACT_HL2MP_IDLE_USE_HEAVY; break;
-				case ACT_HL2MP_RUN:				weaponTranslation = ACT_HL2MP_RUN_USE_HEAVY; break;
-				case ACT_HL2MP_WALK:			weaponTranslation = ACT_HL2MP_WALK_USE_HEAVY; break;
-				case ACT_HL2MP_IDLE_CROUCH:		weaponTranslation = ACT_HL2MP_IDLE_CROUCH_USE_HEAVY; break;
-				case ACT_HL2MP_WALK_CROUCH:		weaponTranslation = ACT_HL2MP_WALK_CROUCH_USE_HEAVY; break;
-				case ACT_HL2MP_JUMP:			weaponTranslation = ACT_HL2MP_JUMP_USE_HEAVY; break;
-			}
-		}
-		else
-		{
-			switch (baseAct)
-			{
-				case ACT_HL2MP_IDLE:			weaponTranslation = ACT_HL2MP_IDLE_USE; break;
-				case ACT_HL2MP_RUN:				weaponTranslation = ACT_HL2MP_RUN_USE; break;
-				case ACT_HL2MP_WALK:			weaponTranslation = ACT_HL2MP_WALK_USE; break;
-				case ACT_HL2MP_IDLE_CROUCH:		weaponTranslation = ACT_HL2MP_IDLE_CROUCH_USE; break;
-				case ACT_HL2MP_WALK_CROUCH:		weaponTranslation = ACT_HL2MP_WALK_CROUCH_USE; break;
-				case ACT_HL2MP_JUMP:			weaponTranslation = ACT_HL2MP_JUMP_USE; break;
-			}
-		}
-	}
-#endif
+	if (!hl2_use_hl2dm_anims.GetBool())
+		return;
 
-	return weaponTranslation;
+	if (IsAlive())
+	{
+		SetSequence( -1 );
+		SetActivity( ACT_INVALID );
+
+		if (!GetAbsVelocity().x && !GetAbsVelocity().y)
+			SetAnimation( PLAYER_IDLE );
+		else if ((GetAbsVelocity().x || GetAbsVelocity().y) && (GetFlags() & FL_ONGROUND))
+			SetAnimation( PLAYER_WALK );
+		else if (GetWaterLevel() > 1)
+			SetAnimation( PLAYER_WALK );
+	}
 }
 
-#ifdef SP_ANIM_STATE
 // Set the activity based on an event or current state
 void CHL2_Player::SetAnimation( PLAYER_ANIM playerAnim )
 {
-	if (!m_pPlayerAnimState)
+	if (!hl2_use_hl2dm_anims.GetBool())
 	{
 		BaseClass::SetAnimation( playerAnim );
 		return;
 	}
 
-	m_pPlayerAnimState->SetPlayerAnimation( playerAnim );
-}
+	int animDesired;
 
-void CHL2_Player::AddAnimStateLayer( int iSequence, float flBlendIn, float flBlendOut, float flPlaybackRate, bool bHoldAtEnd, bool bOnlyWhenStill )
-{
-	if (!m_pPlayerAnimState)
-		return;
+	float speed;
 
-	m_pPlayerAnimState->AddMiscSequence( iSequence, flBlendIn, flBlendOut, flPlaybackRate, bHoldAtEnd, bOnlyWhenStill );
-}
-#endif
+	speed = GetAbsVelocity().Length2D();
 
-//-----------------------------------------------------------------------------
-// Purpose: model-change notification. Fires on dynamic load completion as well
-//-----------------------------------------------------------------------------
-CStudioHdr *CHL2_Player::OnNewModel()
-{
-	CStudioHdr *hdr = BaseClass::OnNewModel();
+	
+	// bool bRunning = true;
 
-#ifdef SP_ANIM_STATE
-	// Clears the animation state if we already have one.
-	if ( m_pPlayerAnimState != NULL )
+	//Revisit!
+/*	if ( ( m_nButtons & ( IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT ) ) )
 	{
-		m_pPlayerAnimState->Release();
-		m_pPlayerAnimState = NULL;
+		if ( speed > 1.0f && speed < hl2_normspeed.GetFloat() - 20.0f )
+		{
+			bRunning = false;
+		}
+	}*/
+
+	if ( GetFlags() & ( FL_FROZEN | FL_ATCONTROLS ) )
+	{
+		speed = 0;
+		playerAnim = PLAYER_IDLE;
 	}
 
-	if ( hdr && hdr->HaveSequenceForActivity(ACT_HL2MP_IDLE) && hl2_use_sp_animstate.GetBool() )
+	Activity idealActivity = ACT_HL2MP_RUN;
+
+	// This could stand to be redone. Why is playerAnim abstracted from activity? (sjb)
+	if ( playerAnim == PLAYER_JUMP )
 	{
-		// Here we create and init the player animation state.
-		m_pPlayerAnimState = CreatePlayerAnimationState(this);
+		idealActivity = ACT_HL2MP_JUMP;
+	}
+	else if ( playerAnim == PLAYER_DIE )
+	{
+		if ( m_lifeState == LIFE_ALIVE )
+		{
+			return;
+		}
+	}
+	else if ( playerAnim == PLAYER_ATTACK1 )
+	{
+		if ( GetActivity( ) == ACT_HOVER	|| 
+			 GetActivity( ) == ACT_SWIM		||
+			 GetActivity( ) == ACT_HOP		||
+			 GetActivity( ) == ACT_LEAP		||
+			 GetActivity( ) == ACT_DIESIMPLE )
+		{
+			idealActivity = GetActivity( );
+		}
+		else
+		{
+			idealActivity = ACT_HL2MP_GESTURE_RANGE_ATTACK;
+		}
+	}
+	else if ( playerAnim == PLAYER_RELOAD )
+	{
+		idealActivity = ACT_HL2MP_GESTURE_RELOAD;
+	}
+	else if ( playerAnim == PLAYER_IDLE || playerAnim == PLAYER_WALK )
+	{
+		if ( !( GetFlags() & FL_ONGROUND ) && GetActivity( ) == ACT_HL2MP_JUMP )	// Still jumping
+		{
+			idealActivity = GetActivity( );
+		}
+		/*
+		else if ( GetWaterLevel() > 1 )
+		{
+			if ( speed == 0 )
+				idealActivity = ACT_HOVER;
+			else
+				idealActivity = ACT_SWIM;
+		}
+		*/
+		else
+		{
+			if ( GetFlags() & FL_DUCKING )
+			{
+				if ( speed > 0 )
+				{
+					idealActivity = ACT_HL2MP_WALK_CROUCH;
+				}
+				else
+				{
+					idealActivity = ACT_HL2MP_IDLE_CROUCH;
+				}
+			}
+			else
+			{
+				if ( speed > 0 )
+				{
+					/*
+					if ( bRunning == false )
+					{
+						idealActivity = ACT_WALK;
+					}
+					else
+					*/
+					{
+						idealActivity = ACT_HL2MP_RUN;
+					}
+				}
+				else
+				{
+					idealActivity = ACT_HL2MP_IDLE;
+				}
+			}
+		}
+	}
+	
+	if ( idealActivity == ACT_HL2MP_GESTURE_RANGE_ATTACK )
+	{
+		RestartGesture( Weapon_TranslateActivity( idealActivity ) );
+
+		// FIXME: this seems a bit wacked
+		Weapon_SetActivity( Weapon_TranslateActivity( ACT_RANGE_ATTACK1 ), 0 );
+
+		return;
+	}
+	else if ( idealActivity == ACT_HL2MP_GESTURE_RELOAD )
+	{
+		RestartGesture( Weapon_TranslateActivity( idealActivity ) );
+		return;
 	}
 	else
 	{
-		m_flAnimRenderYaw = FLT_MAX;
+		SetActivity( idealActivity );
+
+		animDesired = SelectWeightedSequence( Weapon_TranslateActivity ( idealActivity ) );
+
+		if (animDesired == -1)
+		{
+			animDesired = SelectWeightedSequence( idealActivity );
+
+			if ( animDesired == -1 )
+			{
+				animDesired = 0;
+			}
+		}
+	
+		// Already using the desired animation?
+		if ( GetSequence() == animDesired )
+			return;
+
+		m_flPlaybackRate = 1.0;
+		ResetSequence( animDesired );
+		SetCycle( 0 );
+		return;
 	}
-#endif
 
-	return hdr;
+	// Already using the desired animation?
+	if ( GetSequence() == animDesired )
+		return;
+
+	//Msg( "Set animation to %d\n", animDesired );
+	// Reset to first frame of desired animation
+	ResetSequence( animDesired );
+	SetCycle( 0 );
 }
-
-extern char g_szDefaultPlayerModel[MAX_PATH];
-extern bool g_bDefaultPlayerDrawExternally;
 #endif
 
 //-----------------------------------------------------------------------------
@@ -1497,12 +1553,7 @@ void CHL2_Player::Spawn(void)
 
 #ifndef HL2MP
 #ifndef PORTAL
-#ifdef MAPBASE
-	if ( GetModelName() == NULL_STRING )
-		SetModel( g_szDefaultPlayerModel );
-#else
 	SetModel( "models/player.mdl" );
-#endif
 #endif
 #endif
 
@@ -1517,8 +1568,6 @@ void CHL2_Player::Spawn(void)
 
 		RemoveEffects( EF_NODRAW );
 	}
-
-	SetDrawPlayerModelExternally( g_bDefaultPlayerDrawExternally );
 #endif
 
 	//
@@ -1789,14 +1838,6 @@ void CHL2_Player::InitVCollision( const Vector &vecAbsOrigin, const Vector &vecA
 
 CHL2_Player::~CHL2_Player( void )
 {
-#ifdef SP_ANIM_STATE
-	// Clears the animation state.
-	if ( m_pPlayerAnimState != NULL )
-	{
-		m_pPlayerAnimState->Release();
-		m_pPlayerAnimState = NULL;
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1836,22 +1877,25 @@ bool CHL2_Player::CommanderFindGoal( commandgoal_t *pGoal )
 			if (!pCommandRedirect || pCommandRedirect->IsDisabled() || !pCommandRedirect->PointIsWithin(tr.endpos))
 				continue;
 
-			// First, give it our allies so it could fire outputs
+			// First, GIVE IT OUR ALLIES so it could fire outputs
 			pCommandRedirect->HandleAllies(m_pPlayerAISquad, this);
 
 			Vector vec = tr.endpos;
-			if (pCommandRedirect->TestRedirect(&vec, this))
+			if (pCommandRedirect->GetVerdict(&vec, this))
 			{
-				// If it returned a 0 vector, cancel the command
+				// It doesn't want us moving, so just don't find a goal at all
 				if (vec.IsZero())
 				{
 					return false;
 				}
 
-				// Just set our goal to this and skip the code below which checks the target position's validity
+				// Just set our goal to this, the mapper didn't sign up for these checks
 				pGoal->m_vecGoalLocation = vec;
 				return true;
 			}
+
+			// Only one should be necessary
+			break;
 		}
 	}
 	//else
@@ -3996,10 +4040,7 @@ Vector CHL2_Player::EyeDirection2D( void )
 Vector CHL2_Player::EyeDirection3D( void )
 {
 	Vector vecForward;
-#ifdef MAPBASE
-	EyeVectors( &vecForward );
-	return vecForward;
-#else
+
 	// Return the vehicle angles if we request them
 	if ( GetVehicle() != NULL )
 	{
@@ -4010,7 +4051,6 @@ Vector CHL2_Player::EyeDirection3D( void )
 	
 	AngleVectors( EyeAngles(), &vecForward );
 	return vecForward;
-#endif
 }
 
 
@@ -4581,7 +4621,6 @@ BEGIN_DATADESC( CLogicPlayerProxy )
 	DEFINE_INPUTFUNC( FIELD_STRING,	"GetAmmoOnWeapon", InputGetAmmoOnWeapon ),
 	DEFINE_INPUTFUNC( FIELD_STRING,	"SetHandModel", InputSetHandModel ),
 	DEFINE_INPUTFUNC( FIELD_INTEGER, "SetHandModelSkin", InputSetHandModelSkin ),
-	DEFINE_INPUTFUNC( FIELD_INTEGER, "SetHandModelBodyGroup", InputSetHandModelBodyGroup ),
 	DEFINE_INPUTFUNC( FIELD_STRING,	"SetPlayerModel", InputSetPlayerModel ),
 	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetPlayerDrawExternally", InputSetPlayerDrawExternally ),
 	DEFINE_INPUT( m_MaxArmor, FIELD_INTEGER, "SetMaxInputArmor" ),
@@ -4624,8 +4663,6 @@ bool CLogicPlayerProxy::KeyValue( const char *szKeyName, const char *szValue )
 					vm->SetModel(szValue);
 				else if (FStrEq(szKeyName, "Skin")) // HandsVMSkin
 					vm->m_nSkin = atoi(szValue);
-				else if (FStrEq(szKeyName, "Body")) // HandsVMBody
-					vm->m_nBody = atoi(szValue);
 			}
 			return true;
 		}
@@ -4701,8 +4738,7 @@ bool CLogicPlayerProxy::AcceptInput( const char *szInputName, CBaseEntity *pActi
 		{
 			DevMsg("logic_playerproxy: Player not found!\n");
 
-			// Need to allocate the string here in case szInputName is freed before the input fires
-			g_EventQueue.AddEvent("!player", STRING( AllocPooledString(szInputName) ), Value, 0.01f, pActivator, pCaller);
+			g_EventQueue.AddEvent("!player", szInputName, Value, 0.01f, pActivator, pCaller);
 		}
 	}
 
@@ -5029,17 +5065,6 @@ void CLogicPlayerProxy::InputSetHandModelSkin( inputdata_t &inputdata )
 		vm->m_nSkin = inputdata.value.Int();
 }
 
-void CLogicPlayerProxy::InputSetHandModelBodyGroup( inputdata_t &inputdata )
-{
-	if (!m_hPlayer)
-		return;
-
-	CBasePlayer *pPlayer = static_cast<CBasePlayer*>( m_hPlayer.Get() );
-	CBaseViewModel *vm = pPlayer->GetViewModel(1);
-	if (vm)
-		vm->m_nBody = inputdata.value.Int();
-}
-
 void CLogicPlayerProxy::InputSetPlayerModel( inputdata_t &inputdata )
 {
 	if (!m_hPlayer)
@@ -5067,6 +5092,6 @@ void CLogicPlayerProxy::InputSetPlayerDrawExternally( inputdata_t &inputdata )
 		return;
 
 	CBasePlayer *pPlayer = static_cast<CBasePlayer*>(m_hPlayer.Get());
-	pPlayer->SetDrawPlayerModelExternally( inputdata.value.Bool() );
+	pPlayer->m_bDrawPlayerModelExternally = inputdata.value.Bool();
 }
 #endif

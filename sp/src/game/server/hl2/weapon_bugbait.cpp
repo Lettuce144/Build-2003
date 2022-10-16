@@ -58,9 +58,6 @@ public:
 	bool	ShouldDisplayHUDHint() { return true; }
 
 	DECLARE_DATADESC();
-#ifdef MAPBASE
-	DECLARE_ACTTABLE();
-#endif
 
 protected:
 
@@ -88,26 +85,6 @@ BEGIN_DATADESC( CWeaponBugBait )
 	DEFINE_FUNCTION( BugbaitStickyTouch ),
 
 END_DATADESC()
-
-#ifdef MAPBASE
-acttable_t	CWeaponBugBait::m_acttable[] =
-{
-	// HL2:DM activities (for third-person animations in SP)
-	{ ACT_HL2MP_IDLE,					ACT_HL2MP_IDLE_GRENADE,                    false },
-	{ ACT_HL2MP_RUN,					ACT_HL2MP_RUN_GRENADE,                    false },
-	{ ACT_HL2MP_IDLE_CROUCH,			ACT_HL2MP_IDLE_CROUCH_GRENADE,            false },
-	{ ACT_HL2MP_WALK_CROUCH,			ACT_HL2MP_WALK_CROUCH_GRENADE,            false },
-	{ ACT_HL2MP_GESTURE_RANGE_ATTACK,	ACT_HL2MP_GESTURE_RANGE_ATTACK_GRENADE,    false },
-	{ ACT_HL2MP_GESTURE_RELOAD,			ACT_HL2MP_GESTURE_RELOAD_GRENADE,        false },
-	{ ACT_HL2MP_JUMP,					ACT_HL2MP_JUMP_GRENADE,			false },
-#if EXPANDED_HL2DM_ACTIVITIES
-	{ ACT_HL2MP_WALK,					ACT_HL2MP_WALK_GRENADE,					false },
-	{ ACT_HL2MP_GESTURE_RANGE_ATTACK2,	ACT_HL2MP_GESTURE_RANGE_ATTACK2_GRENADE,    false },
-#endif
-};
-
-IMPLEMENT_ACTTABLE( CWeaponBugBait );
-#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -315,10 +292,6 @@ void CWeaponBugBait::ThrowGrenade( CBasePlayer *pPlayer )
 	}
 
 	m_bRedraw = true;
-
-#ifdef MAPBASE
-	pPlayer->SetAnimation( PLAYER_ATTACK1 );
-#endif
 }
 
 //-----------------------------------------------------------------------------

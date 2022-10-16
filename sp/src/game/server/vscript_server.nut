@@ -63,26 +63,10 @@ function EntFireByHandle( target, action, value = null, delay = 0.0, activator =
 
 function DispatchParticleEffect( particleName, origin, angles, entity = null )
 {
-	return DoDispatchParticleEffect( particleName, origin, angles, entity );
+	DoDispatchParticleEffect( particleName, origin, angles, entity );
 }
 
-function ImpulseScale( flTargetMass, flDesiredSpeed )
-{
-	return flTargetMass * flDesiredSpeed;
-}
-__Documentation.RegisterHelp( "ImpulseScale", "float ImpulseScale(float, float)", "Returns an impulse scale required to push an object." );
-
-local PrecacheModel = PrecacheModel
-function PrecacheModel( a, b = true )
-{
-    return PrecacheModel( a, b )
-}
-
-local PrecacheOther = PrecacheOther
-function PrecacheOther( a, b = "" )
-{
-    PrecacheOther( a, b )
-}
+__Documentation.RegisterHelp( "CConvars::GetClientConvarValue", "CConvars::GetClientConvarValue(string, int)", "Returns the convar value for the entindex as a string. Only works with client convars with the FCVAR_USERINFO flag." );
 
 function __ReplaceClosures( script, scope )
 {
@@ -93,7 +77,7 @@ function __ReplaceClosures( script, scope )
 
 	local tempParent = { getroottable = function() { return null; } };
 	local temp = { runscript = script };
-	temp.setdelegate(tempParent);
+	temp.set_delegate(tempParent);
 
 	temp.runscript()
 	foreach( key,val in temp )

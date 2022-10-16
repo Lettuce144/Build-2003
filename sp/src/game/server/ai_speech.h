@@ -5,9 +5,6 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#ifdef NEW_RESPONSE_SYSTEM
-#include "ai_speech_new.h"
-#else
 #ifndef AI_SPEECH_H
 #define AI_SPEECH_H
 
@@ -187,10 +184,6 @@ public:
 	bool CanSpeakAfterMyself();
 	float GetTimeSpeechComplete() const 	{ return m_flStopTalkTime; }
 	void  BlockSpeechUntil( float time );
-	
-#ifdef MAPBASE
-	float GetRealTimeSpeechComplete() const	{ return m_flStopTalkTimeWithoutDelay; }
-#endif
 
 	// --------------------------------
 	
@@ -199,10 +192,6 @@ public:
 	float GetTimeSpokeConcept( AIConcept_t concept ); // returns -1 if never
 	void SetSpokeConcept( AIConcept_t concept, AI_Response *response, bool bCallback = true );
 	void ClearSpokeConcept( AIConcept_t concept );
-
-#ifdef MAPBASE
-	AIConcept_t GetLastSpokeConcept( AIConcept_t excludeConcept = NULL );
-#endif
 	
 	// --------------------------------
 	
@@ -463,4 +452,3 @@ inline void CAI_ExpresserHost<BASE_NPC>::DispatchResponse( const char *conceptNa
 //-----------------------------------------------------------------------------
 
 #endif // AI_SPEECH_H
-#endif

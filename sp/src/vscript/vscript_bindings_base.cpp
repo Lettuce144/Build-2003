@@ -459,9 +459,6 @@ void RegisterBaseBindings( IScriptVM *pVM )
 
 	//-----------------------------------------------------------------------------
 
-	ScriptRegisterConstant( pVM, MAPBASE_VERSION, "The current Mapbase version according to when the VScript library was last compiled." );
-	ScriptRegisterConstant( pVM, MAPBASE_VER_INT, "The current Mapbase version integer according to when the VScript library was last compiled." );
-
 	//
 	// Math/world
 	//

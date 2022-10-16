@@ -428,11 +428,6 @@ BEGIN_RECV_TABLE_NOBASE( C_BaseEntity, DT_AnimTimeMustBeFirst )
 	RecvPropInt( RECVINFO(m_flAnimTime), 0, RecvProxy_AnimTime ),
 END_RECV_TABLE()
 
-#ifdef MAPBASE_VSCRIPT
-ScriptHook_t C_BaseEntity::g_Hook_UpdateOnRemove;
-ScriptHook_t C_BaseEntity::g_Hook_ModifyEmitSoundParams;
-#endif
-
 BEGIN_ENT_SCRIPTDESC_ROOT( C_BaseEntity, "Root class of all client-side entities" )
 	DEFINE_SCRIPT_INSTANCE_HELPER( &g_BaseEntityScriptInstanceHelper )
 	DEFINE_SCRIPTFUNC_NAMED( GetAbsOrigin, "GetOrigin", "" )
@@ -555,14 +550,7 @@ BEGIN_ENT_SCRIPTDESC_ROOT( C_BaseEntity, "Root class of all client-side entities
 
 	DEFINE_SCRIPTFUNC_NAMED( ScriptSetContextThink, "SetContextThink", "Set a think function on this entity." )
 
-
-	DEFINE_SIMPLE_SCRIPTHOOK( C_BaseEntity::g_Hook_UpdateOnRemove, "UpdateOnRemove", FIELD_VOID, "Called when the entity is being removed." )
-
-	BEGIN_SCRIPTHOOK( C_BaseEntity::g_Hook_ModifyEmitSoundParams, "ModifyEmitSoundParams", FIELD_VOID, "Called every time a sound is emitted on this entity, allowing for its parameters to be modified." )
-		DEFINE_SCRIPTHOOK_PARAM( "params", FIELD_HSCRIPT )
-	END_SCRIPTHOOK()
-
-#endif // MAPBASE_VSCRIPT
+#endif
 
 END_SCRIPTDESC();
 
@@ -1352,12 +1340,6 @@ void C_BaseEntity::Term()
 
 	if ( m_hScriptInstance )
 	{
-#ifdef MAPBASE_VSCRIPT
-		if ( m_ScriptScope.IsInitialized() && g_Hook_UpdateOnRemove.CanRunInScope( m_ScriptScope ) )
-		{
-			g_Hook_UpdateOnRemove.Call( m_ScriptScope, NULL, NULL );
-		}
-#endif
 		g_pScriptVM->RemoveInstance( m_hScriptInstance );
 		m_hScriptInstance = NULL;
 
@@ -4932,15 +4914,9 @@ C_BaseEntity *C_BaseEntity::Instance( int iEnt )
 }
 
 #ifdef WIN32
-
-#if _MSC_VER < 1900
 #pragma warning( push )
 #include <typeinfo.h>
 #pragma warning( pop )
-#else
-#include <typeinfo>
-#endif
-
 #endif
 
 //-----------------------------------------------------------------------------

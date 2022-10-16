@@ -40,15 +40,6 @@ extern int vscript_token;
 int vscript_token_hack = vscript_token;
 #endif
 
-static const char *pszExtensions[] =
-{
-	"",		// SL_NONE
-	".gm",	// SL_GAMEMONKEY
-	".nut",	// SL_SQUIRREL
-	".lua", // SL_LUA
-	".py",  // SL_PYTHON
-};
-
 
 
 HSCRIPT VScriptCompileScript( const char *pszScriptName, bool bWarnMissing )
@@ -57,6 +48,15 @@ HSCRIPT VScriptCompileScript( const char *pszScriptName, bool bWarnMissing )
 	{
 		return NULL;
 	}
+
+	static const char *pszExtensions[] =
+	{
+		"",		// SL_NONE
+		".gm",	// SL_GAMEMONKEY
+		".nut",	// SL_SQUIRREL
+		".lua", // SL_LUA
+		".py",  // SL_PYTHON
+	};
 
 	const char *pszVMExtension = pszExtensions[g_pScriptVM->GetLanguage()];
 	const char *pszIncomingExtension = V_strrchr( pszScriptName , '.' );
@@ -170,129 +170,12 @@ bool VScriptRunScript( const char *pszScriptName, HSCRIPT hScope, bool bWarnMiss
 	return bSuccess;
 }
 
-
-#ifdef MAPBASE_VSCRIPT
-
-//
-// These functions are currently only used for "mapspawn_addon" scripts.
-//
-HSCRIPT VScriptCompileScriptAbsolute( const char *pszScriptName, bool bWarnMissing, const char *pszRootFolderName )
-{
-	if ( !g_pScriptVM )
-	{
-		return NULL;
-	}
-
-	const char *pszVMExtension = pszExtensions[g_pScriptVM->GetLanguage()];
-	const char *pszIncomingExtension = V_strrchr( pszScriptName , '.' );
-	if ( pszIncomingExtension && V_strcmp( pszIncomingExtension, pszVMExtension ) != 0 )
-	{
-		CGWarning( 0, CON_GROUP_VSCRIPT, "Script file type does not match VM type\n" );
-		return NULL;
-	}
-
-	CFmtStr scriptPath;
-	if ( pszIncomingExtension )
-	{
-		scriptPath = pszScriptName;
-	}
-	else
-	{	
-		scriptPath.sprintf( "%s%s", pszScriptName,  pszVMExtension );
-	}
-
-	const char *pBase;
-	CUtlBuffer bufferScript;
-
-	if ( g_pScriptVM->GetLanguage() == SL_PYTHON )
-	{
-		// python auto-loads raw or precompiled modules - don't load data here
-		pBase = NULL;
-	}
-	else
-	{
-		bool bResult = filesystem->ReadFile( scriptPath, NULL, bufferScript );
-
-		if ( !bResult && bWarnMissing )
-		{
-			CGWarning( 0, CON_GROUP_VSCRIPT, "Script not found (%s) \n", scriptPath.operator const char *() );
-			Assert( "Error running script" );
-		}
-
-		pBase = (const char *) bufferScript.Base();
-
-		if ( !pBase || !*pBase )
-		{
-			return NULL;
-		}
-	}
-
-	// Attach the folder to the script ID
-	const char *pszFilename = V_strrchr( scriptPath, '/' );
-	scriptPath.sprintf( "%s%s", pszRootFolderName, pszFilename );
-
-	HSCRIPT hScript = g_pScriptVM->CompileScript( pBase, scriptPath );
-	if ( !hScript )
-	{
-		CGWarning( 0, CON_GROUP_VSCRIPT, "FAILED to compile and execute script file named %s\n", scriptPath.operator const char *() );
-		Assert( "Error running script" );
-	}
-	return hScript;
-}
-
-bool VScriptRunScriptAbsolute( const char *pszScriptName, HSCRIPT hScope, bool bWarnMissing, const char *pszRootFolderName )
-{
-	if ( !g_pScriptVM )
-	{
-		return false;
-	}
-
-	if ( !pszScriptName || !*pszScriptName )
-	{
-		CGWarning( 0, CON_GROUP_VSCRIPT, "Cannot run script: NULL script name\n" );
-		return false;
-	}
-
-	// Prevent infinite recursion in VM
-	if ( g_ScriptServerRunScriptDepth > 16 )
-	{
-		CGWarning( 0, CON_GROUP_VSCRIPT, "IncludeScript stack overflow\n" );
-		return false;
-	}
-
-	g_ScriptServerRunScriptDepth++;
-	HSCRIPT	hScript = VScriptCompileScriptAbsolute( pszScriptName, bWarnMissing, pszRootFolderName );
-	bool bSuccess = false;
-	if ( hScript )
-	{
-		bSuccess = ( g_pScriptVM->Run( hScript, hScope ) != SCRIPT_ERROR );
-		if ( !bSuccess )
-		{
-			Warning( "Error running script named %s\n", pszScriptName );
-			Assert( "Error running script" );
-		}
-	}
-	g_ScriptServerRunScriptDepth--;
-	return bSuccess;
-}
-#endif
-
-
-#ifdef GAME_DLL
-#define IsCommandIssuedByServerAdmin() UTIL_IsCommandIssuedByServerAdmin()
-#else
-#define IsCommandIssuedByServerAdmin() true
-#endif
-
 #ifdef CLIENT_DLL
-CON_COMMAND_F( script_client, "Run the text as a script", FCVAR_CHEAT )
+CON_COMMAND( script_client, "Run the text as a script" )
 #else
-CON_COMMAND_F( script, "Run the text as a script", FCVAR_CHEAT )
+CON_COMMAND( script, "Run the text as a script" )
 #endif
 {
-	if ( !IsCommandIssuedByServerAdmin() )
-		return;
-
 	if ( !*args[1] )
 	{
 		CGWarning( 0, CON_GROUP_VSCRIPT, "No function name specified\n" );
@@ -345,15 +228,9 @@ CON_COMMAND_F( script, "Run the text as a script", FCVAR_CHEAT )
 	}
 }
 
-#ifdef CLIENT_DLL
-CON_COMMAND_F( script_execute_client, "Run a vscript file", FCVAR_CHEAT )
-#else
-CON_COMMAND_F( script_execute, "Run a vscript file", FCVAR_CHEAT )
-#endif
-{
-	if ( !IsCommandIssuedByServerAdmin() )
-		return;
 
+CON_COMMAND_SHARED( script_execute, "Run a vscript file" )
+{
 	if ( !*args[1] )
 	{
 		CGWarning( 0, CON_GROUP_VSCRIPT, "No script specified\n" );
@@ -369,15 +246,8 @@ CON_COMMAND_F( script_execute, "Run a vscript file", FCVAR_CHEAT )
 	VScriptRunScript( args[1], true );
 }
 
-#ifdef CLIENT_DLL
-CON_COMMAND_F( script_debug_client, "Connect the vscript VM to the script debugger", FCVAR_CHEAT )
-#else
-CON_COMMAND_F( script_debug, "Connect the vscript VM to the script debugger", FCVAR_CHEAT )
-#endif
+CON_COMMAND_SHARED( script_debug, "Connect the vscript VM to the script debugger" )
 {
-	if ( !IsCommandIssuedByServerAdmin() )
-		return;
-
 	if ( !g_pScriptVM )
 	{
 		CGWarning( 0, CON_GROUP_VSCRIPT, "Scripting disabled or no server running\n" );
@@ -386,15 +256,8 @@ CON_COMMAND_F( script_debug, "Connect the vscript VM to the script debugger", FC
 	g_pScriptVM->ConnectDebugger();
 }
 
-#ifdef CLIENT_DLL
-CON_COMMAND_F( script_help_client, "Output help for script functions, optionally with a search string", FCVAR_CHEAT )
-#else
-CON_COMMAND_F( script_help, "Output help for script functions, optionally with a search string", FCVAR_CHEAT )
-#endif
+CON_COMMAND_SHARED( script_help, "Output help for script functions, optionally with a search string" )
 {
-	if ( !IsCommandIssuedByServerAdmin() )
-		return;
-
 	if ( !g_pScriptVM )
 	{
 		CGWarning( 0, CON_GROUP_VSCRIPT, "Scripting disabled or no server running\n" );
@@ -409,15 +272,8 @@ CON_COMMAND_F( script_help, "Output help for script functions, optionally with a
 	g_pScriptVM->Run( CFmtStr( "__Documentation.PrintHelp( \"%s\" );", pszArg1 ) );
 }
 
-#ifdef CLIENT_DLL
-CON_COMMAND_F( script_dump_all_client, "Dump the state of the VM to the console", FCVAR_CHEAT )
-#else
-CON_COMMAND_F( script_dump_all, "Dump the state of the VM to the console", FCVAR_CHEAT )
-#endif
+CON_COMMAND_SHARED( script_dump_all, "Dump the state of the VM to the console" )
 {
-	if ( !IsCommandIssuedByServerAdmin() )
-		return;
-
 	if ( !g_pScriptVM )
 	{
 		CGWarning( 0, CON_GROUP_VSCRIPT, "Scripting disabled or no server running\n" );
@@ -425,74 +281,6 @@ CON_COMMAND_F( script_dump_all, "Dump the state of the VM to the console", FCVAR
 	}
 	g_pScriptVM->DumpState();
 }
-
-//-----------------------------------------------------------------------------
-
-#ifdef MAPBASE_VSCRIPT
-void RunAddonScripts()
-{
-	char searchPaths[4096];
-	filesystem->GetSearchPath( "ADDON", true, searchPaths, sizeof( searchPaths ) );
-
-	for ( char *path = strtok( searchPaths, ";" ); path; path = strtok( NULL, ";" ) )
-	{
-		char folderName[MAX_PATH];
-		Q_FileBase( path, folderName, sizeof( folderName ) );
-
-		// mapspawn_addon
-		char fullpath[MAX_PATH];
-		Q_snprintf( fullpath, sizeof( fullpath ), "%sscripts/vscripts/mapspawn_addon", path );
-		Q_FixSlashes( fullpath );
-
-		VScriptRunScriptAbsolute( fullpath, NULL, false, folderName );
-	}
-}
-
-// UNDONE: "autorun" folder
-/*
-void RunAutorunScripts()
-{
-	FileFindHandle_t fileHandle;
-	char szDirectory[MAX_PATH];
-	char szFileName[MAX_PATH];
-	char szPartialScriptPath[MAX_PATH];
-
-	// TODO: Scanning for VM extension would make this more efficient
-	Q_strncpy( szDirectory, "scripts/vscripts/autorun/*", sizeof( szDirectory ) );
-
-	const char *pszScriptFile = filesystem->FindFirst( szDirectory, &fileHandle );
-	while (pszScriptFile && fileHandle != FILESYSTEM_INVALID_FIND_HANDLE)
-	{
-		Q_FileBase( pszScriptFile, szFileName, sizeof( szFileName ) );
-		Q_snprintf( szPartialScriptPath, sizeof( szPartialScriptPath ), "autorun/%s", szFileName );
-		VScriptRunScript( szPartialScriptPath );
-
-		pszScriptFile = filesystem->FindNext( fileHandle );
-	}
-
-	// Non-shared scripts
-#ifdef CLIENT_DLL
-	Q_strncpy( szDirectory, "scripts/vscripts/autorun/client/*", sizeof( szDirectory ) );
-#else
-	Q_strncpy( szDirectory, "scripts/vscripts/autorun/server/*", sizeof( szDirectory ) );
-#endif
-
-	pszScriptFile = filesystem->FindFirst( szDirectory, &fileHandle );
-	while (pszScriptFile && fileHandle != FILESYSTEM_INVALID_FIND_HANDLE)
-	{
-		Q_FileBase( pszScriptFile, szFileName, sizeof( szFileName ) );
-#ifdef CLIENT_DLL
-		Q_snprintf( szPartialScriptPath, sizeof( szPartialScriptPath ), "autorun/client/%s", szFileName );
-#else
-		Q_snprintf( szPartialScriptPath, sizeof( szPartialScriptPath ), "autorun/server/%s", szFileName );
-#endif
-		VScriptRunScript( szPartialScriptPath );
-
-		pszScriptFile = filesystem->FindNext( fileHandle );
-	}
-}
-*/
-#endif
 
 //-----------------------------------------------------------------------------
 
@@ -625,10 +413,6 @@ public:
 			}
 		}
 		m_InstanceMap.Purge();
-
-#ifdef MAPBASE_VSCRIPT
-		GetScriptHookManager().OnRestore();
-#endif
 
 #if defined(MAPBASE_VSCRIPT) && defined(CLIENT_DLL)
 		VScriptSaveRestoreUtil_OnVMRestore();

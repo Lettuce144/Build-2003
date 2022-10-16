@@ -164,9 +164,10 @@ struct thinkfunc_t
 #ifdef MAPBASE_VSCRIPT
 struct scriptthinkfunc_t
 {
-	float		m_flNextThink;
-	HSCRIPT		m_hfnThink;
-	unsigned	m_iContextHash;
+	int				m_nNextThinkTick;
+	HSCRIPT			m_hfnThink;
+	unsigned short	m_iContextHash;
+	bool			m_bNoParam;
 };
 #endif
 
@@ -294,9 +295,6 @@ public:
 	string_t		m_iszScriptId;
 #ifdef MAPBASE_VSCRIPT
 	CScriptScope	m_ScriptScope;
-
-	static ScriptHook_t g_Hook_UpdateOnRemove;
-	static ScriptHook_t g_Hook_ModifyEmitSoundParams;
 #endif
 
 // IClientUnknown overrides.
@@ -402,7 +400,7 @@ public:
 
 #ifdef MAPBASE_VSCRIPT
 	// "I don't know why but wrapping entindex() works, while calling it directly crashes."
-	inline int GetEntityIndex() const { return entindex(); }
+	inline int C_BaseEntity::GetEntityIndex() const { return entindex(); }
 #endif
 	
 	// This works for client-only entities and returns the GetEntryIndex() of the entity's handle,
@@ -1264,7 +1262,7 @@ public:
 #ifdef _DEBUG
 	void FunctionCheck( void *pFunction, const char *name );
 
-	ENTITYFUNCPTR TouchSet( ENTITYFUNCPTR func, const char *name ) 
+	ENTITYFUNCPTR TouchSet( ENTITYFUNCPTR func, char *name ) 
 	{ 
 		//COMPILE_TIME_ASSERT( sizeof(func) == 4 );
 		m_pfnTouch = func; 
