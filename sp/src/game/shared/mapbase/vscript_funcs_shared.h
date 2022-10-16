@@ -21,6 +21,7 @@
 //-----------------------------------------------------------------------------
 struct scriptsurfacedata_t : public surfacedata_t
 {
+<<<<<<< Updated upstream
 public:
 	float			GetFriction() const				{ return physics.friction; }
 	float			GetThickness() const			{ return physics.thickness; }
@@ -38,6 +39,24 @@ public:
 	const char*		GetSoundRolling() const			{ return physprops->GetString( sounds.rolling ); }
 	const char*		GetSoundBreak() const			{ return physprops->GetString( sounds.breakSound ); }
 	const char*		GetSoundStrain() const			{ return physprops->GetString( sounds.strainSound ); }
+=======
+	float			GetFriction() { return physics.friction; }
+	float			GetThickness() { return physics.thickness; }
+
+	float			GetJumpFactor() { return game.jumpFactor; }
+	char			GetMaterialChar() { return game.material; }
+
+	const char*		GetSoundStepLeft();
+	const char*		GetSoundStepRight();
+	const char*		GetSoundImpactSoft();
+	const char*		GetSoundImpactHard();
+	const char*		GetSoundScrapeSmooth();
+	const char*		GetSoundScrapeRough();
+	const char*		GetSoundBulletImpact();
+	const char*		GetSoundRolling();
+	const char*		GetSoundBreak();
+	const char*		GetSoundStrain();
+>>>>>>> Stashed changes
 };
 
 //-----------------------------------------------------------------------------
@@ -46,8 +65,13 @@ public:
 class CSurfaceScriptHelper
 {
 public:
+<<<<<<< Updated upstream
 	// This class is owned by CScriptGameTrace, and cannot be accessed without being initialised in CScriptGameTrace::RegisterSurface()
 	//CSurfaceScriptHelper() : m_pSurface(NULL), m_hSurfaceData(NULL) {}
+=======
+	CSurfaceScriptAccessor( csurface_t &surf ) { m_surf = &surf; m_surfaceData = g_pScriptVM->RegisterInstance( reinterpret_cast<scriptsurfacedata_t*>(physprops->GetSurfaceData( m_surf->surfaceProps )) ); }
+	~CSurfaceScriptAccessor() { delete m_surfaceData; }
+>>>>>>> Stashed changes
 
 	~CSurfaceScriptHelper()
 	{

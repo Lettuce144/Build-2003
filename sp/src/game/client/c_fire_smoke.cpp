@@ -267,9 +267,15 @@ void C_FireSmoke::SpawnSmoke(void)
 }
 
 
+<<<<<<< Updated upstream
 IMPLEMENT_CLIENTCLASS_DT(C_EntityFlame, DT_EntityFlame, CEntityFlame)
 RecvPropEHandle(RECVINFO(m_hEntAttached)),
 RecvPropBool(RECVINFO(m_bIsGreen)),
+=======
+IMPLEMENT_CLIENTCLASS_DT( C_EntityFlame, DT_EntityFlame, CEntityFlame )
+	RecvPropEHandle(RECVINFO(m_hEntAttached)),
+	RecvPropBool(RECVINFO(m_bIsGreen)),
+>>>>>>> Stashed changes
 END_RECV_TABLE()
 
 //-----------------------------------------------------------------------------
@@ -341,7 +347,10 @@ void C_EntityFlame::CreateEffect(void)
 	else {
 		m_hEffect = ParticleProp()->Create("burning_character", PATTACH_ABSORIGIN_FOLLOW);
 	}
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 #endif
 
 	if (m_hEffect)

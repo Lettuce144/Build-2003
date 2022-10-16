@@ -350,6 +350,7 @@ BEGIN_SCRIPTDESC_ROOT_NAMED( CScriptGameTrace, "CGameTrace", "trace_t" )
 	DEFINE_SCRIPTFUNC( Destroy, "Deletes this instance. Important for preventing memory leaks." )
 END_SCRIPTDESC();
 
+<<<<<<< Updated upstream
 BEGIN_SCRIPTDESC_ROOT_NAMED( scriptsurfacedata_t, "surfacedata_t", "" )
 	DEFINE_SCRIPTFUNC( GetFriction, "" )
 	DEFINE_SCRIPTFUNC( GetThickness, "" )
@@ -371,6 +372,40 @@ END_SCRIPTDESC();
 
 BEGIN_SCRIPTDESC_ROOT_NAMED( CSurfaceScriptHelper, "csurface_t", "" )
 	DEFINE_SCRIPTFUNC( Name, "" )
+=======
+BEGIN_SCRIPTDESC_ROOT_NAMED( scriptsurfacedata_t, "surfacedata_t", "Handle for accessing surface data." )
+	DEFINE_SCRIPTFUNC( GetFriction, "The surface's friction." )
+	DEFINE_SCRIPTFUNC( GetThickness, "The surface's thickness." )
+
+	DEFINE_SCRIPTFUNC( GetJumpFactor, "The surface's jump factor." )
+	DEFINE_SCRIPTFUNC( GetMaterialChar, "The surface's material character." )
+
+	DEFINE_SCRIPTFUNC( GetSoundStepLeft, "The surface's left step sound." )
+	DEFINE_SCRIPTFUNC( GetSoundStepRight, "The surface's right step sound." )
+	DEFINE_SCRIPTFUNC( GetSoundImpactSoft, "The surface's soft impact sound." )
+	DEFINE_SCRIPTFUNC( GetSoundImpactHard, "The surface's hard impact sound." )
+	DEFINE_SCRIPTFUNC( GetSoundScrapeSmooth, "The surface's smooth scrape sound." )
+	DEFINE_SCRIPTFUNC( GetSoundScrapeRough, "The surface's rough scrape sound." )
+	DEFINE_SCRIPTFUNC( GetSoundBulletImpact, "The surface's bullet impact sound." )
+	DEFINE_SCRIPTFUNC( GetSoundRolling, "The surface's rolling sound." )
+	DEFINE_SCRIPTFUNC( GetSoundBreak, "The surface's break sound." )
+	DEFINE_SCRIPTFUNC( GetSoundStrain, "The surface's strain sound." )
+END_SCRIPTDESC();
+
+const char*		scriptsurfacedata_t::GetSoundStepLeft() { return physprops->GetString( sounds.stepleft ); }
+const char*		scriptsurfacedata_t::GetSoundStepRight() { return physprops->GetString( sounds.stepright ); }
+const char*		scriptsurfacedata_t::GetSoundImpactSoft() { return physprops->GetString( sounds.impactSoft ); }
+const char*		scriptsurfacedata_t::GetSoundImpactHard() { return physprops->GetString( sounds.impactHard ); }
+const char*		scriptsurfacedata_t::GetSoundScrapeSmooth() { return physprops->GetString( sounds.scrapeSmooth ); }
+const char*		scriptsurfacedata_t::GetSoundScrapeRough() { return physprops->GetString( sounds.scrapeRough ); }
+const char*		scriptsurfacedata_t::GetSoundBulletImpact() { return physprops->GetString( sounds.bulletImpact ); }
+const char*		scriptsurfacedata_t::GetSoundRolling() { return physprops->GetString( sounds.rolling ); }
+const char*		scriptsurfacedata_t::GetSoundBreak() { return physprops->GetString( sounds.breakSound ); }
+const char*		scriptsurfacedata_t::GetSoundStrain() { return physprops->GetString( sounds.strainSound ); }
+
+BEGIN_SCRIPTDESC_ROOT_NAMED( CSurfaceScriptAccessor, "csurface_t", "Handle for accessing csurface_t info." )
+	DEFINE_SCRIPTFUNC( Name, "The surface's name." )
+>>>>>>> Stashed changes
 	DEFINE_SCRIPTFUNC( SurfaceProps, "The surface's properties." )
 END_SCRIPTDESC();
 
@@ -509,6 +544,7 @@ static void DestroyFireBulletsInfo( HSCRIPT hBulletsInfo )
 //-----------------------------------------------------------------------------
 CAnimEventTInstanceHelper g_AnimEventTInstanceHelper;
 
+<<<<<<< Updated upstream
 BEGIN_SCRIPTDESC_ROOT( scriptanimevent_t, "" )
 	DEFINE_SCRIPT_INSTANCE_HELPER( &g_AnimEventTInstanceHelper )
 
@@ -523,6 +559,22 @@ BEGIN_SCRIPTDESC_ROOT( scriptanimevent_t, "" )
 
 	DEFINE_SCRIPTFUNC( GetEventTime, "" )
 	DEFINE_SCRIPTFUNC( SetEventTime, "" )
+=======
+BEGIN_SCRIPTDESC_ROOT( scriptanimevent_t, "Handle for accessing animevent_t info." )
+	DEFINE_SCRIPT_INSTANCE_HELPER( &g_AnimEventTInstanceHelper )
+
+	DEFINE_SCRIPTFUNC( GetEvent, "Gets the event number." )
+	DEFINE_SCRIPTFUNC( SetEvent, "Sets the event number." )
+
+	DEFINE_SCRIPTFUNC( GetOptions, "Gets the event's options/parameters." )
+	DEFINE_SCRIPTFUNC( SetOptions, "Sets the event's options/parameters." )
+
+	DEFINE_SCRIPTFUNC( GetCycle, "Gets the cycle at which the event happens." )
+	DEFINE_SCRIPTFUNC( SetCycle, "Sets the cycle at which the event happens." )
+
+	DEFINE_SCRIPTFUNC( GetEventTime, "Gets the time the event plays." )
+	DEFINE_SCRIPTFUNC( SetEventTime, "Sets the time the event plays." )
+>>>>>>> Stashed changes
 
 	DEFINE_SCRIPTFUNC( GetType, "Gets the event's type flags. See the 'AE_TYPE_' set of constants for valid flags." )
 	DEFINE_SCRIPTFUNC( SetType, "Sets the event's type flags. See the 'AE_TYPE_' set of constants for valid flags." )
@@ -584,26 +636,47 @@ bool CAnimEventTInstanceHelper::Set( void *p, const char *pszKey, ScriptVariant_
 //-----------------------------------------------------------------------------
 // EmitSound_t
 //-----------------------------------------------------------------------------
+<<<<<<< Updated upstream
 BEGIN_SCRIPTDESC_ROOT_NAMED( ScriptEmitSound_t, "EmitSound_t", "" )
 	DEFINE_SCRIPT_CONSTRUCTOR()
 
 	DEFINE_SCRIPTFUNC( GetChannel, "" )
 	DEFINE_SCRIPTFUNC( SetChannel, "" )
+=======
+BEGIN_SCRIPTDESC_ROOT_NAMED( ScriptEmitSound_t, "EmitSound_t", "Handle for accessing EmitSound_t info." )
+	DEFINE_SCRIPT_CONSTRUCTOR()
+
+	DEFINE_SCRIPTFUNC( GetChannel, "Gets the sound's channel." )
+	DEFINE_SCRIPTFUNC( SetChannel, "Gets the sound's channel." )
+>>>>>>> Stashed changes
 
 	DEFINE_SCRIPTFUNC( GetSoundName, "Gets the sound's file path or soundscript name." )
 	DEFINE_SCRIPTFUNC( SetSoundName, "Sets the sound's file path or soundscript name." )
 
+<<<<<<< Updated upstream
 	DEFINE_SCRIPTFUNC( GetVolume, "(Note that this may not apply to soundscripts)" )
 	DEFINE_SCRIPTFUNC( SetVolume, "(Note that this may not apply to soundscripts)" )
+=======
+	DEFINE_SCRIPTFUNC( GetVolume, "Gets the sound's volume. (Note that this may not apply to soundscripts)" )
+	DEFINE_SCRIPTFUNC( SetVolume, "Sets the sound's volume. (Note that this may not apply to soundscripts)" )
+>>>>>>> Stashed changes
 
 	DEFINE_SCRIPTFUNC( GetSoundLevel, "Gets the sound's level in decibels. (Note that this may not apply to soundscripts)" )
 	DEFINE_SCRIPTFUNC( SetSoundLevel, "Sets the sound's level in decibels. (Note that this may not apply to soundscripts)" )
 
+<<<<<<< Updated upstream
 	DEFINE_SCRIPTFUNC( GetFlags, "Gets the sound's flags. See the 'SND_' set of constants." )
 	DEFINE_SCRIPTFUNC( SetFlags, "Sets the sound's flags. See the 'SND_' set of constants." )
 
 	DEFINE_SCRIPTFUNC( GetSpecialDSP, "" )
 	DEFINE_SCRIPTFUNC( SetSpecialDSP, "" )
+=======
+	DEFINE_SCRIPTFUNC( GetFlags, "Gets the sound's flags. See the 'SND_' set of constants for more information." )
+	DEFINE_SCRIPTFUNC( SetFlags, "Sets the sound's flags. See the 'SND_' set of constants for more information." )
+
+	DEFINE_SCRIPTFUNC( GetSpecialDSP, "Gets the sound's special DSP setting." )
+	DEFINE_SCRIPTFUNC( SetSpecialDSP, "Sets the sound's special DSP setting." )
+>>>>>>> Stashed changes
 
 	DEFINE_SCRIPTFUNC( HasOrigin, "Returns true if the sound has an origin override." )
 	DEFINE_SCRIPTFUNC( GetOrigin, "Gets the sound's origin override." )
@@ -625,14 +698,23 @@ BEGIN_SCRIPTDESC_ROOT_NAMED( ScriptEmitSound_t, "EmitSound_t", "" )
 	DEFINE_SCRIPTFUNC( GetSpeakerEntity, "Gets the sound's original source if it is being transmitted by a microphone." )
 	DEFINE_SCRIPTFUNC( SetSpeakerEntity, "Sets the sound's original source if it is being transmitted by a microphone." )
 
+<<<<<<< Updated upstream
 	DEFINE_SCRIPTFUNC( GetSoundScriptHandle, "" )
 	DEFINE_SCRIPTFUNC( SetSoundScriptHandle, "" )
+=======
+	DEFINE_SCRIPTFUNC( GetSoundScriptHandle, "Gets the sound's script handle." )
+	DEFINE_SCRIPTFUNC( SetSoundScriptHandle, "Sets the sound's script handle." )
+>>>>>>> Stashed changes
 END_SCRIPTDESC();
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+<<<<<<< Updated upstream
 BEGIN_SCRIPTDESC_ROOT_NAMED( CScriptUserCmd, "CUserCmd", "" )
+=======
+BEGIN_SCRIPTDESC_ROOT_NAMED( CScriptUserCmd, "CUserCmd", "Handle for accessing CUserCmd info." )
+>>>>>>> Stashed changes
 	DEFINE_SCRIPTFUNC( GetCommandNumber, "For matching server and client commands for debugging." )
 
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetTickCount, "GetTickCount", "The tick the client created this command." )
@@ -674,6 +756,7 @@ END_SCRIPTDESC();
 	DEFINE_SCRIPTFUNC( Set##name, "Set " desc )
 
 BEGIN_SCRIPTDESC_ROOT_NAMED( Script_AI_EnemyInfo_t, "AI_EnemyInfo_t", "Accessor for information about an enemy." )
+<<<<<<< Updated upstream
 	DEFINE_SCRIPTFUNC( Enemy, "" )
 	DEFINE_SCRIPTFUNC( SetEnemy, "" )
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( LastKnownLocation, "" )
@@ -681,12 +764,25 @@ BEGIN_SCRIPTDESC_ROOT_NAMED( Script_AI_EnemyInfo_t, "AI_EnemyInfo_t", "Accessor 
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeLastSeen, "" )
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeFirstSeen, "" )
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeLastReacquired, "" )
+=======
+	DEFINE_SCRIPTFUNC( Enemy, "Get the enemy." )
+	DEFINE_SCRIPTFUNC( SetEnemy, "Set the enemy." )
+	DEFINE_ENEMY_INFO_SCRIPTFUNCS( LastKnownLocation, "the enemy's last known location." )
+	DEFINE_ENEMY_INFO_SCRIPTFUNCS( LastSeenLocation, "the enemy's last seen location." )
+	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeLastSeen, "the last time the enemy was seen." )
+	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeFirstSeen, "the first time the enemy was seen." )
+	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeLastReacquired, "the last time the enemy was reaquired." )
+>>>>>>> Stashed changes
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeValidEnemy, "the time at which the enemy can be selected (reaction delay)." )
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeLastReceivedDamageFrom, "the last time damage was received from this enemy." )
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( TimeAtFirstHand, "the time at which the enemy was seen firsthand." )
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( DangerMemory, "the memory of danger position w/o enemy pointer." )
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( EludedMe, "whether the enemy is not at the last known location." )
+<<<<<<< Updated upstream
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( Unforgettable, "" )
+=======
+	DEFINE_ENEMY_INFO_SCRIPTFUNCS( Unforgettable, "whether the enemy is unforgettable." )
+>>>>>>> Stashed changes
 	DEFINE_ENEMY_INFO_SCRIPTFUNCS( MobbedMe, "whether the enemy was part of a mob at some point." )
 END_SCRIPTDESC();
 #endif
@@ -888,6 +984,45 @@ static void EmitSoundParamsOn( HSCRIPT hParams, HSCRIPT hEnt )
 	CBaseEntity::EmitSound( filter, pEnt->entindex(), *pParams );
 }
 
+static HSCRIPT ScriptCreateRope( HSCRIPT hStart, HSCRIPT hEnd, int iStartAttachment, int iEndAttachment, float ropeWidth, const char *pMaterialName, int numSegments, int ropeFlags )
+{
+#ifdef CLIENT_DLL
+	C_RopeKeyframe *pRope = C_RopeKeyframe::Create( ToEnt( hStart ), ToEnt( hEnd ), iStartAttachment, iEndAttachment, ropeWidth, pMaterialName, numSegments, ropeFlags );
+#else
+	CRopeKeyframe *pRope = CRopeKeyframe::Create( ToEnt( hStart ), ToEnt( hEnd ), iStartAttachment, iEndAttachment, ropeWidth, pMaterialName, numSegments );
+	if (pRope)
+		pRope->m_RopeFlags |= ropeFlags; // HACKHACK
+#endif
+
+	return ToHScript( pRope );
+}
+
+#ifndef CLIENT_DLL
+static HSCRIPT ScriptCreateRopeWithSecondPointDetached( HSCRIPT hStart, int iStartAttachment, int ropeLength, float ropeWidth, const char *pMaterialName, int numSegments, bool initialHang, int ropeFlags )
+{
+	CRopeKeyframe *pRope = CRopeKeyframe::CreateWithSecondPointDetached( ToEnt( hStart ), iStartAttachment, ropeLength, ropeWidth, pMaterialName, numSegments, initialHang );
+	if (pRope)
+		pRope->m_RopeFlags |= ropeFlags; // HACKHACK
+
+	return ToHScript( pRope );
+}
+#endif
+
+static void EmitSoundParamsOn( HSCRIPT hParams, HSCRIPT hEnt )
+{
+	CBaseEntity *pEnt = ToEnt( hEnt );
+	if (!pEnt)
+		return;
+
+	ScriptEmitSound_t *pParams = (ScriptEmitSound_t*)g_pScriptVM->GetInstanceValue( hParams, GetScriptDescForClass( ScriptEmitSound_t ) );
+	if (!pParams)
+		return;
+
+	CPASAttenuationFilter filter( pEnt, pParams->m_pSoundName );
+
+	CBaseEntity::EmitSound( filter, pEnt->entindex(), *pParams );
+}
+
 //-----------------------------------------------------------------------------
 // Simple particle effect dispatch
 //-----------------------------------------------------------------------------
@@ -1005,8 +1140,13 @@ void RegisterSharedScriptFunctions()
 	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptDispatchSpawn, "DispatchSpawn", "Spawns an unspawned entity." );
 #endif
 
+<<<<<<< Updated upstream
 	ScriptRegisterFunction( g_pScriptVM, CreateDamageInfo, "" );
 	ScriptRegisterFunction( g_pScriptVM, DestroyDamageInfo, "" );
+=======
+	ScriptRegisterFunction( g_pScriptVM, CreateDamageInfo, "Creates damage info." );
+	ScriptRegisterFunction( g_pScriptVM, DestroyDamageInfo, "Destroys damage info." );
+>>>>>>> Stashed changes
 	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptCalculateExplosiveDamageForce, "CalculateExplosiveDamageForce", "Fill out a damage info handle with a damage force for an explosive." );
 	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptCalculateBulletDamageForce, "CalculateBulletDamageForce", "Fill out a damage info handle with a damage force for a bullet impact." );
 	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptCalculateMeleeDamageForce, "CalculateMeleeDamageForce", "Fill out a damage info handle with a damage force for a melee impact." );

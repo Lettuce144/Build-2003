@@ -297,7 +297,11 @@ END_SCRIPTDESC();
 
 ScriptHook_t	C_BaseAnimating::g_Hook_OnClientRagdoll;
 ScriptHook_t	C_BaseAnimating::g_Hook_FireEvent;
+<<<<<<< Updated upstream
 //ScriptHook_t	C_BaseAnimating::g_Hook_BuildTransformations;
+=======
+ScriptHook_t	C_BaseAnimating::g_Hook_BuildTransformations;
+>>>>>>> Stashed changes
 #endif
 
 BEGIN_ENT_SCRIPTDESC( C_BaseAnimating, C_BaseEntity, "Animating models client-side" )
@@ -367,8 +371,13 @@ BEGIN_ENT_SCRIPTDESC( C_BaseAnimating, C_BaseEntity, "Animating models client-si
 		DEFINE_SCRIPTHOOK_PARAM( "options", FIELD_CSTRING )
 	END_SCRIPTHOOK()
 
+<<<<<<< Updated upstream
 	//BEGIN_SCRIPTHOOK( C_BaseAnimating::g_Hook_BuildTransformations, "BuildTransformations", FIELD_VOID, "Called when building bone transformations. Allows VScript to read/write any bone with Get/SetBoneTransform." )
 	//END_SCRIPTHOOK()
+=======
+	BEGIN_SCRIPTHOOK( C_BaseAnimating::g_Hook_BuildTransformations, "BuildTransformations", FIELD_VOID, "Called when building bone transformations. Allows VScript to read/write any bone with Get/SetBoneTransform." )
+	END_SCRIPTHOOK()
+>>>>>>> Stashed changes
 #endif
 END_SCRIPTDESC();
 
@@ -1575,6 +1584,7 @@ void C_BaseAnimating::ScriptSetBoneTransform( int iBone, HSCRIPT hTransform )
 {
 	matrix3x4_t *matTransform = HScriptToClass<matrix3x4_t>( hTransform );
 	if (matTransform == NULL)
+<<<<<<< Updated upstream
 		return;
 
 	MatrixCopy( *matTransform, GetBoneForWrite( iBone ) );
@@ -1586,6 +1596,19 @@ void C_BaseAnimating::ScriptAttachEntityToBone( HSCRIPT attachTarget, int boneIn
 	if (pTarget == NULL)
 		return;
 
+=======
+		return;
+
+	MatrixCopy( *matTransform, GetBoneForWrite( iBone ) );
+}
+
+void C_BaseAnimating::ScriptAttachEntityToBone( HSCRIPT attachTarget, int boneIndexAttached, const Vector &bonePosition, const QAngle &boneAngles )
+{
+	C_BaseEntity *pTarget = ToEnt( attachTarget );
+	if (pTarget == NULL)
+		return;
+
+>>>>>>> Stashed changes
 	AttachEntityToBone( pTarget->GetBaseAnimating(), boneIndexAttached, bonePosition, boneAngles );
 }
 
@@ -1779,6 +1802,7 @@ void C_BaseAnimating::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 	}
 	
 #ifdef MAPBASE_VSCRIPT
+<<<<<<< Updated upstream
 	//if (m_ScriptScope.IsInitialized() && g_Hook_BuildTransformations.CanRunInScope(m_ScriptScope))
 	//{
 	//	int oldWritableBones = m_BoneAccessor.GetWritableBones();
@@ -1794,6 +1818,23 @@ void C_BaseAnimating::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 	//	m_BoneAccessor.SetWritableBones( oldWritableBones );
 	//	m_BoneAccessor.SetReadableBones( oldReadableBones );
 	//}
+=======
+	if (m_ScriptScope.IsInitialized() && g_Hook_BuildTransformations.CanRunInScope(m_ScriptScope))
+	{
+		int oldWritableBones = m_BoneAccessor.GetWritableBones();
+		int oldReadableBones = m_BoneAccessor.GetReadableBones();
+		m_BoneAccessor.SetWritableBones( BONE_USED_BY_ANYTHING );
+		m_BoneAccessor.SetReadableBones( BONE_USED_BY_ANYTHING );
+
+		// No parameters
+		//ScriptVariant_t args[] = {};
+		//ScriptVariant_t returnValue;
+		g_Hook_BuildTransformations.Call( m_ScriptScope, NULL, NULL /*&returnValue, args*/ );
+
+		m_BoneAccessor.SetWritableBones( oldWritableBones );
+		m_BoneAccessor.SetReadableBones( oldReadableBones );
+	}
+>>>>>>> Stashed changes
 #endif
 }
 

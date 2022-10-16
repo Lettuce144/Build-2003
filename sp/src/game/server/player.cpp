@@ -6513,7 +6513,10 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveAmmo(32, "357");
 		GiveAmmo(16, "XBowBolt");
 		GiveAmmo(10, "slamammo");
+<<<<<<< Updated upstream
 		GiveAmmo(10, "FlareRound");
+=======
+>>>>>>> Stashed changes
 
 		GiveAmmo(5, "Hopwire");
 		GiveNamedItem("weapon_smg1");
@@ -6539,9 +6542,14 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem("weapon_iceaxe");
 		GiveNamedItem("weapon_physgun");
 		GiveNamedItem("weapon_rpg");
+<<<<<<< Updated upstream
 		GiveNamedItem( "weapon_flaregun" );
 		GiveNamedItem( "weapon_irifle" );
 		GiveNamedItem("weapon_extinguisher");
+=======
+		//GiveNamedItem( "weapon_357" );
+		//GiveNamedItem( "weapon_crossbow" );
+>>>>>>> Stashed changes
 #ifdef HL2_EPISODIC
 		// GiveNamedItem( "weapon_magnade" );
 #endif
@@ -7872,7 +7880,11 @@ Activity CBasePlayer::Weapon_TranslateActivity( Activity baseAct, bool *pRequire
 	if ( GetModelPtr() && (!GetModelPtr()->HaveSequenceForActivity(weaponTranslation) || baseAct == weaponTranslation) )
 	{
 		// This is used so players can fall back to backup activities in the same way NPCs in Mapbase can
+<<<<<<< Updated upstream
 		Activity backupActivity = Weapon_BackupActivity(baseAct, pRequired ? *pRequired : false);
+=======
+		Activity backupActivity = Weapon_BackupActivity(baseAct, pRequired);
+>>>>>>> Stashed changes
 		if ( baseAct != backupActivity && GetModelPtr()->HaveSequenceForActivity(backupActivity) )
 			return backupActivity;
 

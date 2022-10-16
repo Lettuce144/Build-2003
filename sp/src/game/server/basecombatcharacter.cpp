@@ -2789,6 +2789,10 @@ Activity CBaseCombatCharacter::Weapon_BackupActivity( Activity activity, bool we
 
 	if (pTable && GetModelPtr())
 	{
+<<<<<<< Updated upstream
+=======
+		int actCount = pWeapon->GetBackupActivityListCount();
+>>>>>>> Stashed changes
 		return Weapon_BackupActivityFromList( this, pTable, actCount, activity, weaponTranslationWasRequired, pWeapon );
 	}
 

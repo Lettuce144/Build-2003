@@ -52,8 +52,11 @@ ConVar mapbase_load_default_manifest("mapbase_load_default_manifest", "1", FCVAR
 #ifdef GAME_DLL
 // This constant should change with each Mapbase update
 ConVar mapbase_version( "mapbase_version", MAPBASE_VERSION, FCVAR_NONE, "The version of Mapbase currently being used in this mod's server.dll" );
+<<<<<<< Updated upstream
 
 ConVar mapbase_load_addon_manifest( "mapbase_load_addon_manifest", "0", FCVAR_NONE, "Allows manifests from \"addon\" path IDs to be loaded." );
+=======
+>>>>>>> Stashed changes
 
 ConVar mapbase_flush_talker("mapbase_flush_talker", "1", FCVAR_NONE, "Normally, when a map with custom talker files is unloaded, the response system resets to rid itself of the custom file(s). Turn this convar off to prevent that from happening.");
 
@@ -70,8 +73,11 @@ static bool g_bMapContainsCustomTalker;
 // This constant should change with each Mapbase update
 ConVar mapbase_version_client( "mapbase_version_client", MAPBASE_VERSION, FCVAR_NONE, "The version of Mapbase currently being used in this mod's client.dll" );
 
+<<<<<<< Updated upstream
 ConVar mapbase_load_addon_manifest( "mapbase_load_addon_manifest_client", "0", FCVAR_NONE, "Allows manifests from \"addon\" path IDs to be loaded on the client." );
 
+=======
+>>>>>>> Stashed changes
 // This is from the vgui_controls library
 extern vgui::HScheme g_iCustomClientSchemeOverride;
 
@@ -91,10 +97,13 @@ char g_iszGameName[128];
 // Default player configuration
 char g_szDefaultPlayerModel[MAX_PATH];
 bool g_bDefaultPlayerDrawExternally;
+<<<<<<< Updated upstream
 
 char g_szDefaultHandsModel[MAX_PATH];
 int g_iDefaultHandsSkin;
 int g_iDefaultHandsBody;
+=======
+>>>>>>> Stashed changes
 #endif
 
 enum
@@ -154,9 +163,12 @@ static const ManifestType_t gm_szManifestFileStrings[MANIFEST_NUM_TYPES] = {
 	{ "talker",			"mapbase_load_talker",			"Should we load map-specific talker files? e.g. \"maps/<mapname>_talker.txt\"" },
 	//{ "sentences",	"mapbase_load_sentences",		"Should we load map-specific sentences? e.g. \"maps/<mapname>_sentences.txt\"" },
 	{ "actbusy",		"mapbase_load_actbusy",			"Should we load map-specific actbusy files? e.g. \"maps/<mapname>_actbusy.txt\"" },
+<<<<<<< Updated upstream
 #endif
 #ifdef MAPBASE_VSCRIPT
 	{ "vscript",		"mapbase_load_vscript",			"Should we load map-specific VScript map spawn files? e.g. \"maps/<mapname>_mapspawn.nut\"" },
+=======
+>>>>>>> Stashed changes
 #endif
 };
 
@@ -241,10 +253,13 @@ public:
 #ifdef GAME_DLL
 			Q_strncpy( g_szDefaultPlayerModel, gameinfo->GetString( "player_default_model", "models/player.mdl" ), sizeof( g_szDefaultPlayerModel ) );
 			g_bDefaultPlayerDrawExternally = gameinfo->GetBool( "player_default_draw_externally", false );
+<<<<<<< Updated upstream
 
 			Q_strncpy( g_szDefaultHandsModel, gameinfo->GetString( "player_default_hands", "models/weapons/v_hands.mdl" ), sizeof( g_szDefaultHandsModel ) );
 			g_iDefaultHandsSkin = gameinfo->GetInt( "player_default_hands_skin", 0 );
 			g_iDefaultHandsBody = gameinfo->GetInt( "player_default_hands_body", 0 );
+=======
+>>>>>>> Stashed changes
 #endif
 		}
 		gameinfo->deleteThis();

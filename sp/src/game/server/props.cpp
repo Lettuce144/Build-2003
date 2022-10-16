@@ -4449,6 +4449,7 @@ void CBasePropDoor::CalcDoorSounds()
 				strSoundUnlocked = AllocPooledString( pkvHardwareData->GetString( "unlocked" ) );
 
 #ifdef MAPBASE
+<<<<<<< Updated upstream
 				if (ai_door_enable_acts.GetBool())
 				{
 					if (m_eNPCOpenFrontActivity == ACT_INVALID)
@@ -4470,11 +4471,35 @@ void CBasePropDoor::CalcDoorSounds()
 							if (m_eNPCOpenBackActivity == ACT_INVALID)
 								m_eNPCOpenBackActivity = ActivityList_RegisterPrivateActivity( pszActivity );
 						}
+=======
+				if (m_eNPCOpenFrontActivity == ACT_INVALID)
+				{
+					const char *pszActivity = pkvHardwareData->GetString( "activity_front" );
+					if (pszActivity[0] != '\0')
+					{
+						m_eNPCOpenFrontActivity = (Activity)CAI_BaseNPC::GetActivityID( pszActivity );
+						if (m_eNPCOpenFrontActivity == ACT_INVALID)
+							m_eNPCOpenFrontActivity = ActivityList_RegisterPrivateActivity( pszActivity );
+					}
+				}
+				if (m_eNPCOpenBackActivity == ACT_INVALID)
+				{
+					const char *pszActivity = pkvHardwareData->GetString( "activity_back" );
+					if (pszActivity[0] != '\0')
+					{
+						m_eNPCOpenBackActivity = (Activity)CAI_BaseNPC::GetActivityID( pszActivity );
+						if (m_eNPCOpenBackActivity == ACT_INVALID)
+							m_eNPCOpenBackActivity = ActivityList_RegisterPrivateActivity( pszActivity );
+>>>>>>> Stashed changes
 					}
 				}
 
 				if (m_flNPCOpenDistance == -1)
+<<<<<<< Updated upstream
 					m_flNPCOpenDistance = pkvHardwareData->GetFloat( "npc_distance", ai_door_enable_acts.GetBool() ? 32.0 : 64.0 );
+=======
+					m_flNPCOpenDistance = pkvHardwareData->GetFloat( "npc_distance", 32.0 );
+>>>>>>> Stashed changes
 #endif
 			}
 
@@ -6083,6 +6108,11 @@ void CPropDoorRotating::DoorResume( void )
 	AngularMove( m_angGoal, m_flSpeed );
 }
 
+#ifdef MAPBASE
+ConVar ai_door_enable_acts( "ai_door_enable_acts", "1", FCVAR_NONE, "Enables the new door-opening activities." );
+ConVar ai_door_open_dist_override( "ai_door_open_dist_override", "-1", FCVAR_NONE, "Overrides the distance from a door a NPC has to navigate to in order to open a door." );
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : vecMoveDir - 
@@ -6116,7 +6146,11 @@ void CPropDoorRotating::GetNPCOpenData(CAI_BaseNPC *pNPC, opendata_t &opendata)
 		opendata.vecStandPos += vecForward * flPosOffset;
 		opendata.vecFaceDir = -vecForward;
 #ifdef MAPBASE
+<<<<<<< Updated upstream
 		opendata.eActivity = GetNPCOpenFrontActivity();
+=======
+		opendata.eActivity = !ai_door_enable_acts.GetBool() ? ACT_INVALID : GetNPCOpenFrontActivity();
+>>>>>>> Stashed changes
 #endif
 	}
 	else
@@ -6125,7 +6159,11 @@ void CPropDoorRotating::GetNPCOpenData(CAI_BaseNPC *pNPC, opendata_t &opendata)
 		opendata.vecStandPos -= vecForward * flPosOffset;
 		opendata.vecFaceDir = vecForward;
 #ifdef MAPBASE
+<<<<<<< Updated upstream
 		opendata.eActivity = GetNPCOpenBackActivity();
+=======
+		opendata.eActivity = !ai_door_enable_acts.GetBool() ? ACT_INVALID : GetNPCOpenBackActivity();
+>>>>>>> Stashed changes
 #endif
 	}
 

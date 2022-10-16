@@ -132,8 +132,11 @@ public:
 	void SetSpeakers( const char *pszSpeakers ) { m_iszSpeakers.Set( AllocPooledString( pszSpeakers ) ); }
 	const char *GetPrintName() { return STRING( m_iszPrintName.Get() ); }
 	void SetPrintName( const char *pszPrintName ) { m_iszPrintName.Set( AllocPooledString( pszPrintName ) ); }
+<<<<<<< Updated upstream
 	const char *GetFootnote() { return STRING( m_iszFootnote.Get() ); }
 	void SetFootnote( const char *pszFootnote ) { m_iszFootnote.Set( AllocPooledString( pszFootnote ) ); }
+=======
+>>>>>>> Stashed changes
 #endif
 
 	// Inputs
@@ -169,7 +172,10 @@ private:
 	float		m_flViewPositionSpeedScale;
 	float		m_flReturnSpeedScale;
 	CNetworkVar( string_t, m_iszPrintName );
+<<<<<<< Updated upstream
 	CNetworkVar( string_t, m_iszFootnote );
+=======
+>>>>>>> Stashed changes
 	float		m_flViewPositionChangedTime;	// View position now blends relative to this value. Mainly needed for when SetViewPosition is used
 #endif
 	bool		m_bPreventMovement;
@@ -231,7 +237,10 @@ BEGIN_DATADESC( CPointCommentaryNode )
 	DEFINE_KEYFIELD( m_flViewPositionSpeedScale, FIELD_FLOAT, "viewposition_speed" ),
 	DEFINE_KEYFIELD( m_flReturnSpeedScale, FIELD_FLOAT, "return_speed" ),
 	DEFINE_KEYFIELD( m_iszPrintName, FIELD_STRING, "printname" ),
+<<<<<<< Updated upstream
 	DEFINE_KEYFIELD( m_iszFootnote, FIELD_STRING, "footnote" ),
+=======
+>>>>>>> Stashed changes
 	DEFINE_FIELD( m_flViewPositionChangedTime, FIELD_TIME ),
 	DEFINE_KEYFIELD( m_iCommentaryType, FIELD_INTEGER, "type" ),
 	DEFINE_KEYFIELD( m_flPanelScale, FIELD_FLOAT, "panelscale" ),
@@ -277,8 +286,11 @@ BEGIN_ENT_SCRIPTDESC( CPointCommentaryNode, CBaseAnimating, "Commentary nodes wh
 	DEFINE_SCRIPTFUNC( SetSpeakers, "" )
 	DEFINE_SCRIPTFUNC( GetPrintName, "" )
 	DEFINE_SCRIPTFUNC( SetPrintName, "" )
+<<<<<<< Updated upstream
 	DEFINE_SCRIPTFUNC( GetFootnote, "" )
 	DEFINE_SCRIPTFUNC( SetFootnote, "" )
+=======
+>>>>>>> Stashed changes
 	DEFINE_SCRIPTFUNC( GetCommentaryType, "" )
 	DEFINE_SCRIPTFUNC( SetCommentaryType, "" )
 
@@ -304,7 +316,10 @@ IMPLEMENT_SERVERCLASS_ST( CPointCommentaryNode, DT_PointCommentaryNode )
 	SendPropEHandle( SENDINFO(m_hViewPosition) ),
 #ifdef MAPBASE
 	SendPropStringT( SENDINFO( m_iszPrintName ) ),
+<<<<<<< Updated upstream
 	SendPropStringT( SENDINFO( m_iszFootnote ) ),
+=======
+>>>>>>> Stashed changes
 	SendPropInt( SENDINFO( m_iCommentaryType ), 2, SPROP_UNSIGNED ),
 	SendPropFloat( SENDINFO( m_flPanelScale ) ),
 	SendPropFloat( SENDINFO( m_flPanelX ) ),

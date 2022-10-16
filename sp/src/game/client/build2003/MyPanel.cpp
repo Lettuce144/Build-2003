@@ -26,6 +26,13 @@ protected:
 private:
 	//Other used VGUI control Elements:
 	Button* m_pCloseButton;
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+	CheckButton* CheckButton_1;
+=======
+>>>>>>> develop
+>>>>>>> Stashed changes
 
 };
 
@@ -51,14 +58,41 @@ CMyPanel::CMyPanel(vgui::VPANEL parent)
 
 	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
 
+<<<<<<< HEAD
 	LoadControlSettings("resource/UI/ModOptions.res");
+=======
+	LoadControlSettings("resource/UI/playermodelsel.res");
+>>>>>>> develop
 
 	vgui::ivgui()->AddTickSignal(GetVPanel(), 100);
 
 	DevMsg("MyPanel has been constructed\n");
 
+<<<<<<< Updated upstream
 	//Need to put it here AND NOT BEFORE THIS SECTION
 	// Credit: Milkwaym16 for providing reselection (Not documented on vdc wiki >:C)
+=======
+<<<<<<< HEAD
+	CheckButton_1 = new CheckButton(this, "Checkbutton1", "Enables the old flashlight");
+	CheckButton_1->SetPos(26, 335);
+	CheckButton_1->SetSize(256, 24);
+=======
+
+>>>>>>> develop
+
+	//Need to put it here AND NOT BEFORE THIS SECTION
+	// Credit: Milkwaym16 for providing reselection fix (Not documented on vdc wiki >:C)
+
+	//Make our self selceted after an restart
+<<<<<<< HEAD
+=======
+	ConVarRef r_oldflashlight("r_oldflashlight");
+	if (r_oldflashlight.IsValid())
+	{
+		SetControlInt("CheckButton1", r_oldflashlight.GetInt() ? 1 : 0);
+	}
+>>>>>>> develop
+>>>>>>> Stashed changes
 
 	//Make our self selceted after an restart
 	ConVarRef sv_rollangle("sv_rollangle");
@@ -66,6 +100,7 @@ CMyPanel::CMyPanel(vgui::VPANEL parent)
 	{
 		SetControlInt("CheckButton2", sv_rollangle.GetInt() ? 1 : 0);
 	}
+<<<<<<< HEAD
 	ConVarRef sv_bhop_enabled("sv_bhop_enabled");
 	if (sv_bhop_enabled.IsValid())
 	{
@@ -77,6 +112,8 @@ CMyPanel::CMyPanel(vgui::VPANEL parent)
 	{
 		SetControlInt("CheckButton5", cl_oldvmbob.GetInt() ? 1 : 0);
 	}
+=======
+>>>>>>> develop
 }
 
 //Class: CMyPanelInterface Class. Used for construction.
@@ -105,6 +142,7 @@ public:
 	{
 		if (MyPanel)
 		{
+<<<<<<< HEAD
 			ConVarRef r_oldflashlight("r_oldflashlight");
 			if (r_oldflashlight.IsValid())
 			{
@@ -117,6 +155,8 @@ public:
 				MyPanel->SetControlInt("CheckButton3", r_oldflashlight.GetInt() ? 1 : 0);
 			}
 
+=======
+>>>>>>> develop
 			MyPanel->Activate();
 		}
 	}
@@ -147,6 +187,7 @@ void CMyPanel::OnApplyData()
 
 	ConVarRef sv_rollangle("sv_rollangle");
 	sv_rollangle.SetValue(GetControlInt("CheckButton2", 0));
+<<<<<<< HEAD
 
 	ConVarRef sv_zoomnosuit("sv_zoomnosuit");
 	sv_zoomnosuit.SetValue(GetControlInt("CheckButton3", 0));
@@ -154,8 +195,14 @@ void CMyPanel::OnApplyData()
 	ConVarRef sv_bhop_enabled("sv_bhop_enabled");
 	sv_bhop_enabled.SetValue(GetControlInt("CheckButton4", 0));
 
+<<<<<<< Updated upstream
 	ConVarRef cl_oldvmbob("cl_oldvmbob");
 	cl_oldvmbob.SetValue(GetControlInt("CheckButton5", 0));
+=======
+
+=======
+>>>>>>> develop
+>>>>>>> Stashed changes
 }
 
 void CMyPanel::OnCommand(const char* pcCommand)

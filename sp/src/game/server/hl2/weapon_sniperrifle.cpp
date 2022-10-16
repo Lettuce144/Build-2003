@@ -107,7 +107,11 @@ END_DATADESC()
 //-----------------------------------------------------------------------------
 acttable_t	CWeaponSniperRifle::m_acttable[] = 
 {
+<<<<<<< Updated upstream
 	{	ACT_RANGE_ATTACK1, ACT_RANGE_ATTACK_SNIPER_RIFLE, true },
+=======
+	{	ACT_RANGE_ATTACK1, ACT_RANGE_ATTACK_SNIPER_RIFLE, true }
+>>>>>>> Stashed changes
 
 #if EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES
 	// Optional new NPC activities

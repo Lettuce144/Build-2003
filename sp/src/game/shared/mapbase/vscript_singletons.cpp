@@ -872,8 +872,12 @@ public: // IGameSystem
 	{
 		if ( g_pScriptVM )
 		{
+<<<<<<< Updated upstream
 			if ( GetScriptHookManager().IsEventHooked( "OnSave" ) )
 				g_Hook_OnSave.Call( NULL, NULL, NULL );
+=======
+			g_Hook_OnSave.Call( NULL, NULL, NULL );
+>>>>>>> Stashed changes
 
 			// Legacy hook
 			HSCRIPT hFunc = g_pScriptVM->LookupFunction( "OnSave" );
@@ -894,8 +898,12 @@ public: // IGameSystem
 	{
 		if ( g_pScriptVM )
 		{
+<<<<<<< Updated upstream
 			if ( GetScriptHookManager().IsEventHooked( "OnRestore" ) )
 				g_Hook_OnRestore.Call( NULL, NULL, NULL );
+=======
+			g_Hook_OnRestore.Call( NULL, NULL, NULL );
+>>>>>>> Stashed changes
 
 			// Legacy hook
 			HSCRIPT hFunc = g_pScriptVM->LookupFunction( "OnRestore" );
@@ -3170,6 +3178,7 @@ END_SCRIPTDESC();
 class CScriptSteamAPI
 {
 public:
+<<<<<<< Updated upstream
 	const char *GetSteam2ID()
 	{
 		if ( !steamapicontext || !steamapicontext->SteamUser() )
@@ -3187,6 +3196,8 @@ public:
 		return ret;
 	}
 
+=======
+>>>>>>> Stashed changes
 	int GetSecondsSinceComputerActive()
 	{
 		if ( !steamapicontext || !steamapicontext->SteamUtils() )
@@ -3202,7 +3213,11 @@ public:
 
 		return steamapicontext->SteamUtils()->GetCurrentBatteryPower();
 	}
+<<<<<<< Updated upstream
 #if 0
+=======
+
+>>>>>>> Stashed changes
 	const char *GetIPCountry()
 	{
 		if ( !steamapicontext || !steamapicontext->SteamUtils() )
@@ -3217,7 +3232,11 @@ public:
 
 		return ret;
 	}
+<<<<<<< Updated upstream
 #endif
+=======
+
+>>>>>>> Stashed changes
 	const char *GetCurrentGameLanguage()
 	{
 		if ( !steamapicontext || !steamapicontext->SteamApps() )
@@ -3236,7 +3255,10 @@ public:
 } g_ScriptSteamAPI;
 
 BEGIN_SCRIPTDESC_ROOT_NAMED( CScriptSteamAPI, "CSteamAPI", SCRIPT_SINGLETON "" )
+<<<<<<< Updated upstream
 	DEFINE_SCRIPTFUNC( GetSteam2ID, "" )
+=======
+>>>>>>> Stashed changes
 	//DEFINE_SCRIPTFUNC( IsVACBanned, "" )
 	DEFINE_SCRIPTFUNC( GetSecondsSinceComputerActive, "Returns the number of seconds since the user last moved the mouse." )
 	DEFINE_SCRIPTFUNC( GetCurrentBatteryPower, "Return the amount of battery power left in the current system in % [0..100], 255 for being on AC power" )

@@ -98,9 +98,12 @@
 #include <type_traits>
 #include <utility>
 
+<<<<<<< Updated upstream
 #include "utlmap.h"
 #include "utlvector.h"
 
+=======
+>>>>>>> Stashed changes
 #include "platform.h"
 #include "datamap.h"
 #include "appframework/IAppSystem.h"
@@ -890,9 +893,15 @@ public:
 	//--------------------------------------------------------
 	// Hooks
 	//--------------------------------------------------------
+<<<<<<< Updated upstream
 	// Persistent unique identifier for an HSCRIPT variable
 	virtual HScriptRaw HScriptToRaw( HSCRIPT val ) = 0;
 	virtual ScriptStatus_t ExecuteHookFunction( const char *pszEventName, ScriptVariant_t *pArgs, int nArgs, ScriptVariant_t *pReturn, HSCRIPT hScope, bool bWait ) = 0;
+=======
+	virtual bool ScopeIsHooked( HSCRIPT hScope, const char *pszEventName ) = 0;
+	virtual HSCRIPT LookupHookFunction( const char *pszEventName, HSCRIPT hScope, bool &bLegacy ) = 0;
+	virtual ScriptStatus_t ExecuteHookFunction( const char *pszEventName, HSCRIPT hFunction, ScriptVariant_t *pArgs, int nArgs, ScriptVariant_t *pReturn, HSCRIPT hScope, bool bWait ) = 0;
+>>>>>>> Stashed changes
 #endif
 
 	//--------------------------------------------------------
@@ -1901,10 +1910,17 @@ struct ScriptHook_t
 
 	// Only valid between CanRunInScope() and Call()
 	HSCRIPT m_hFunc;
+	bool m_bLegacy;
 
 	ScriptHook_t() :
 		m_hFunc(NULL)
 	{
+<<<<<<< Updated upstream
+=======
+		extern IScriptVM *g_pScriptVM;
+		m_hFunc = g_pScriptVM->LookupHookFunction( m_desc.m_pszScriptName, hScope, m_bLegacy );
+		return m_hFunc;
+>>>>>>> Stashed changes
 	}
 
 #ifdef _DEBUG
@@ -1943,11 +1959,19 @@ struct ScriptHook_t
 	{
 		extern IScriptVM *g_pScriptVM;
 
+<<<<<<< Updated upstream
 		// Call() should not be called without CanRunInScope() check first, it caches m_hFunc for legacy support
 		Assert( CanRunInScope( hScope ) );
 
 		// Legacy
 		if ( m_hFunc )
+=======
+		// Make sure we have a function in this scope
+		if (!m_hFunc && !CanRunInScope(hScope))
+			return false;
+		// Legacy
+		else if (m_bLegacy)
+>>>>>>> Stashed changes
 		{
 			for (int i = 0; i < m_desc.m_Parameters.Count(); i++)
 			{
@@ -1973,6 +1997,20 @@ struct ScriptHook_t
 			ScriptStatus_t status = g_pScriptVM->ExecuteHookFunction( m_desc.m_pszScriptName, pArgs, m_desc.m_Parameters.Count(), pReturn, hScope, true );
 			return status == SCRIPT_DONE;
 		}
+<<<<<<< Updated upstream
+=======
+		// New Hook System
+		else
+		{
+			g_pScriptVM->ExecuteHookFunction( m_desc.m_pszScriptName, m_hFunc, pArgs, m_desc.m_Parameters.Count(), pReturn, hScope, true );
+			if (bRelease)
+				g_pScriptVM->ReleaseFunction( m_hFunc );
+			m_hFunc = NULL;
+			return true;
+		}
+
+		return false;
+>>>>>>> Stashed changes
 	}
 };
 #endif

@@ -406,8 +406,11 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	m_flBobScale = 1.0f;
 	m_flSwayScale = 1.0f;
 	m_flSwaySpeedScale = 1.0f;
+<<<<<<< Updated upstream
 	szDroppedModel[0] = 0;
 	m_bUsesHands = false;
+=======
+>>>>>>> Stashed changes
 #endif
 }
 
@@ -479,10 +482,13 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 	m_flBobScale = pKeyValuesData->GetFloat( "bob_scale", 1.0f );
 	m_flSwayScale = pKeyValuesData->GetFloat( "sway_scale", 1.0f );
 	m_flSwaySpeedScale = pKeyValuesData->GetFloat( "sway_speed_scale", 1.0f );
+<<<<<<< Updated upstream
 
 	Q_strncpy( szDroppedModel, pKeyValuesData->GetString( "droppedmodel" ), MAX_WEAPON_STRING );
 
 	m_bUsesHands = ( pKeyValuesData->GetInt( "uses_hands", 0 ) != 0 ) ? true : false;
+=======
+>>>>>>> Stashed changes
 #endif
 
 #ifndef MAPBASE // Mapbase makes weapons in the same slot & position swap each other out, which is a feature mods can intentionally use.

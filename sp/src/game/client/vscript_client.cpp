@@ -114,7 +114,11 @@ public:
 
 	void OnEntityCreated( CBaseEntity *pEntity )
 	{
+<<<<<<< Updated upstream
 		if ( g_pScriptVM && GetScriptHookManager().IsEventHooked( "OnEntityCreated" ) )
+=======
+		if ( g_pScriptVM )
+>>>>>>> Stashed changes
 		{
 			// entity
 			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
@@ -124,7 +128,11 @@ public:
 
 	void OnEntityDeleted( CBaseEntity *pEntity )
 	{
+<<<<<<< Updated upstream
 		if ( g_pScriptVM && GetScriptHookManager().IsEventHooked( "OnEntityDeleted" ) )
+=======
+		if ( g_pScriptVM )
+>>>>>>> Stashed changes
 		{
 			// entity
 			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
@@ -252,7 +260,14 @@ CScriptMaterialProxy::CScriptMaterialProxy()
 	m_hScriptInstance = NULL;
 	m_hFuncOnBind = NULL;
 
+<<<<<<< Updated upstream
 	V_memset( m_MaterialVars, 0, sizeof(m_MaterialVars) );
+=======
+	for (int i = 0; i < SCRIPT_MAT_PROXY_MAX_VARS; i++)
+	{
+		m_MaterialVars[i] = NULL;
+	}
+>>>>>>> Stashed changes
 }
 
 CScriptMaterialProxy::~CScriptMaterialProxy()
