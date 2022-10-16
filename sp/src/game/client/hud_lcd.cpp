@@ -528,15 +528,15 @@ void CLCD::ShowItems_R( CLCDPage *page, unsigned int dwCurTime, CUtlVector< CLCD
 						{
 							CLCDItem *newItem = NULL;
 
-							CLCDItem *itemLocl = ag->m_Definition[ r ];
-							switch ( itemLocl->m_Type )
+							CLCDItem *item = ag->m_Definition[ r ];
+							switch ( item->m_Type )
 							{
 							default:
 								break;
 
 							case LCDITEM_TEXT:
 								{
-									CLCDItemText *text = static_cast< CLCDItemText * >( itemLocl );
+									CLCDItemText *text = static_cast< CLCDItemText * >( item );
 									CUtlString s;
 									s = text->m_OriginalText;
 									Replace( s, prefix, s1 );
@@ -551,7 +551,7 @@ void CLCD::ShowItems_R( CLCDPage *page, unsigned int dwCurTime, CUtlVector< CLCD
 
 									// text->m_OriginalText = s;
 
-									CLCDItemText *copy = static_cast< CLCDItemText * >( page->Alloc( itemLocl->m_Type ) );
+									CLCDItemText *copy = static_cast< CLCDItemText * >( page->Alloc( item->m_Type ) );
 									*copy = *text;
 									copy->m_bActive = true;
 									copy->m_OriginalText = s;
@@ -564,8 +564,8 @@ void CLCD::ShowItems_R( CLCDPage *page, unsigned int dwCurTime, CUtlVector< CLCD
 								break;
 							case LCDITEM_ICON:
 								{
-									CLCDItemIcon *icon = static_cast< CLCDItemIcon * >( itemLocl );
-									CLCDItemIcon *copy = static_cast< CLCDItemIcon * >( page->Alloc( itemLocl->m_Type ) );
+									CLCDItemIcon *icon = static_cast< CLCDItemIcon * >( item );
+									CLCDItemIcon *copy = static_cast< CLCDItemIcon * >( page->Alloc( item->m_Type ) );
 									*copy = *icon;
 									copy->m_bActive = true;
 									copy->Create( m_lcd );
@@ -1186,16 +1186,16 @@ void CLCD::DumpPlayer()
 	C_Team *team = player->GetTeam();
 	if ( team )
 	{
-		CDescribeData helperLocl( team );
-		helperLocl.DumpDescription( team->GetPredDescMap() );
+		CDescribeData helper( team );
+		helper.DumpDescription( team->GetPredDescMap() );
 	}
 
 	Msg( "(playerresource)\n\n" );
 
 	if ( g_PR )
 	{
-		CDescribeData helperLocl( g_PR );
-		helperLocl.DumpDescription( g_PR->GetPredDescMap() );
+		CDescribeData helper( g_PR );
+		helper.DumpDescription( g_PR->GetPredDescMap() );
 	}
 
 	Msg( "(localplayerweapon)\n\n" );
@@ -1203,8 +1203,8 @@ void CLCD::DumpPlayer()
 	C_BaseCombatWeapon *active = player->GetActiveWeapon();
 	if ( active )
 	{
-		CDescribeData helperLocl( active );
-		helperLocl.DumpDescription( active->GetPredDescMap() );
+		CDescribeData helper( active );
+		helper.DumpDescription( active->GetPredDescMap() );
 	}
 
 	Msg( "Other replacements:\n\n" );

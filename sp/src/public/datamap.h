@@ -313,12 +313,6 @@ struct datamap_t
 	static datamap_t *GetBaseMap(); \
 	template <typename T> friend void DataMapAccess(T *, datamap_t **p); \
 	template <typename T> friend datamap_t *DataMapInit(T *);
-	
-#define DECLARE_SIMPLE_DATADESC_INSIDE_NAMESPACE() \
-	static datamap_t m_DataMap; \
-	static datamap_t *GetBaseMap(); \
-	template <typename T> friend void ::DataMapAccess(T *, datamap_t **p); \
-	template <typename T> friend datamap_t *::DataMapInit(T *);
 
 #define	DECLARE_DATADESC() \
 	DECLARE_SIMPLE_DATADESC() \
@@ -419,8 +413,6 @@ inline void DataMapAccess(T *ignored, datamap_t **p)
 {
 	*p = &T::m_DataMap;
 }
-
-template <typename T> datamap_t* DataMapInit(T*);
 
 //-----------------------------------------------------------------------------
 

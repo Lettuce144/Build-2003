@@ -51,8 +51,6 @@ public:
 	void		PrescheduleThink();
 #ifdef MAPBASE
 	bool		IsInterruptable( void );
-
-	bool		CanManTank( CFuncTank *pTank, bool bForced );
 #endif
 
 	Activity	NPC_TranslateActivity( Activity activity );

@@ -4,9 +4,6 @@
 //
 //=============================================================================//
 
-#ifdef NEW_RESPONSE_SYSTEM
-#include "ai_criteria_new.h"
-#else
 #ifndef AI_CRITERIA_H
 #define AI_CRITERIA_H
 #ifdef _WIN32
@@ -279,4 +276,3 @@ private:
 };
 
 #endif // AI_CRITERIA_H
-#endif

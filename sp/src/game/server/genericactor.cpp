@@ -277,8 +277,7 @@ bool CGenericActorCustom::KeyValue( const char *szKeyName, const char *szValue )
 //-----------------------------------------------------------------------------
 void CGenericActorCustom::SpeakIfAllowed( const char *concept, AI_CriteriaSet *modifiers )
 {
-	AI_CriteriaSet empty;
-	Speak( concept, modifiers ? *modifiers : empty );
+	Speak( concept, modifiers ? *modifiers : AI_CriteriaSet() );
 }
 
 //-----------------------------------------------------------------------------

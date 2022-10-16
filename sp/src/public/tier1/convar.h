@@ -21,7 +21,7 @@
 #include "tier1/utlvector.h"
 #include "tier1/utlstring.h"
 #include "icvar.h"
-#include "Color.h"
+#include "color.h"
 
 #ifdef _WIN32
 #define FORCEINLINE_CVAR FORCEINLINE

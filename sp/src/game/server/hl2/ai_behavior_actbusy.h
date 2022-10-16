@@ -153,10 +153,6 @@ public:
 	bool	IsInSafeZone( CBaseEntity *pEntity );
 	int		CountEnemiesInSafeZone();
 
-#ifdef MAPBASE
-	CAI_ActBusyGoal	*GetActBusyGoal() const { return m_hActBusyGoal; }
-#endif
-
 private:
 	virtual int		SelectSchedule( void );
 	int				SelectScheduleForLeaving( void );

@@ -71,9 +71,6 @@ protected:
 	bool					m_bShotDelayed;
 	int						m_nVentPose;
 	
-#ifdef MAPBASE // Make act table accessible outside class
-public:
-#endif
 	DECLARE_ACTTABLE();
 	DECLARE_DATADESC();
 };

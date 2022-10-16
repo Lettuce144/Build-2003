@@ -21,8 +21,6 @@ public:
 	DECLARE_DATADESC();
 	DECLARE_SERVERCLASS();
 
-	CMovieDisplay() { m_bMuted = true; }
-
 	virtual ~CMovieDisplay();
 
 	virtual bool KeyValue( const char *szKeyName, const char *szValue );
@@ -55,7 +53,6 @@ private:
 private:
 	CNetworkVar( bool, m_bEnabled );
 	CNetworkVar( bool, m_bLooping );
-	CNetworkVar( bool, m_bMuted);
 
 	CNetworkString( m_szDisplayText, 128 );
 
@@ -96,7 +93,6 @@ BEGIN_DATADESC( CMovieDisplay )
 	DEFINE_KEYFIELD( m_iScreenWidth, FIELD_INTEGER, "width" ),
 	DEFINE_KEYFIELD( m_iScreenHeight, FIELD_INTEGER, "height" ),
 	DEFINE_KEYFIELD( m_bLooping, FIELD_BOOLEAN, "looping" ),
-	DEFINE_KEYFIELD( m_bMuted, FIELD_BOOLEAN, "muted"),
 
 	DEFINE_FIELD( m_bDoFullTransmit, FIELD_BOOLEAN ),
 
@@ -112,7 +108,6 @@ END_DATADESC()
 IMPLEMENT_SERVERCLASS_ST( CMovieDisplay, DT_MovieDisplay )
 	SendPropBool( SENDINFO( m_bEnabled ) ),
 	SendPropBool( SENDINFO( m_bLooping ) ),
-	SendPropBool( SENDINFO(	m_bMuted ) ),
 	SendPropString( SENDINFO( m_szMovieFilename ) ),
 	SendPropString( SENDINFO( m_szGroupName ) ),
 END_SEND_TABLE()
@@ -125,7 +120,6 @@ CMovieDisplay::~CMovieDisplay()
 //-----------------------------------------------------------------------------
 // Read in Hammer data
 //-----------------------------------------------------------------------------
-
 bool CMovieDisplay::KeyValue( const char *szKeyName, const char *szValue ) 
 {
 	// NOTE: Have to do these separate because they set two values instead of one

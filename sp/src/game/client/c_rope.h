@@ -33,9 +33,6 @@ public:
 	DECLARE_CLASS( C_RopeKeyframe, C_BaseEntity );
 	DECLARE_CLIENTCLASS();
 
-#ifdef MAPBASE_VSCRIPT
-	DECLARE_ENT_SCRIPTDESC();
-#endif
 
 private:
 
@@ -145,11 +142,6 @@ public:
 	virtual bool	GetAttachment( int number, Vector &origin );
 	virtual bool	GetAttachmentVelocity( int number, Vector &originVel, Quaternion &angleVel );
 
-#ifdef MAPBASE
-	const Vector	&GetNodePosition( int index );
-	int				GetNumNodes();
-#endif
-
 private:
 	
 	void			FinishInit( const char *pMaterialName );
@@ -173,11 +165,6 @@ private:
 
 	void			ReceiveMessage( int classID, bf_read &msg );
 	bool			CalculateEndPointAttachment( C_BaseEntity *pEnt, int iAttachment, Vector &vPos, QAngle *pAngles );
-
-#ifdef MAPBASE_VSCRIPT
-	HSCRIPT			ScriptGetStartEntity() { return ToHScript( GetStartEntity() ); }
-	HSCRIPT			ScriptGetEndEntity() { return ToHScript( GetEndEntity() ); }
-#endif
 
 
 private:

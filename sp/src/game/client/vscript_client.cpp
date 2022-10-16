@@ -15,12 +15,11 @@
 #include "gamerules.h"
 #include "vscript_client.nut"
 #ifdef MAPBASE_VSCRIPT
-#include "view.h"
+#include "mapbase/matchers.h"
 #include "c_world.h"
 #include "proxyentity.h"
 #include "materialsystem/imaterial.h"
 #include "materialsystem/imaterialvar.h"
-#include "mapbase/matchers.h"
 #include "mapbase/vscript_singletons.h"
 #endif
 
@@ -42,13 +41,10 @@ extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
 #endif // VMPROFILE
 
 #ifdef MAPBASE_VSCRIPT
-static ScriptHook_t g_Hook_OnEntityCreated;
-static ScriptHook_t g_Hook_OnEntityDeleted;
-
 //-----------------------------------------------------------------------------
 // Purpose: A clientside variant of CScriptEntityIterator.
 //-----------------------------------------------------------------------------
-class CScriptClientEntityIterator : public IClientEntityListener
+class CScriptClientEntityIterator
 {
 public:
 	HSCRIPT GetLocalPlayer()
@@ -100,38 +96,6 @@ public:
 		return NULL;
 	}
 
-	void EnableEntityListening()
-	{
-		// Start getting entity updates!
-		ClientEntityList().AddListenerEntity( this );
-	}
-
-	void DisableEntityListening()
-	{
-		// Stop getting entity updates!
-		ClientEntityList().RemoveListenerEntity( this );
-	}
-
-	void OnEntityCreated( CBaseEntity *pEntity )
-	{
-		if ( g_pScriptVM && GetScriptHookManager().IsEventHooked( "OnEntityCreated" ) )
-		{
-			// entity
-			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
-			g_Hook_OnEntityCreated.Call( NULL, NULL, args );
-		}
-	};
-
-	void OnEntityDeleted( CBaseEntity *pEntity )
-	{
-		if ( g_pScriptVM && GetScriptHookManager().IsEventHooked( "OnEntityDeleted" ) )
-		{
-			// entity
-			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
-			g_Hook_OnEntityDeleted.Call( NULL, NULL, args );
-		}
-	};
-
 private:
 } g_ScriptEntityIterator;
 
@@ -142,17 +106,6 @@ BEGIN_SCRIPTDESC_ROOT_NAMED( CScriptClientEntityIterator, "CEntities", SCRIPT_SI
 	DEFINE_SCRIPTFUNC( CreateByClassname, "Creates an entity by classname" )
 	DEFINE_SCRIPTFUNC( FindByClassname, "Find entities by class name. Pass 'null' to start an iteration, or reference to a previously found entity to continue a search"  )
 	DEFINE_SCRIPTFUNC( FindByName, "Find entities by name. Pass 'null' to start an iteration, or reference to a previously found entity to continue a search"  )
-
-	DEFINE_SCRIPTFUNC( EnableEntityListening, "Enables the 'OnEntity' hooks. This function must be called before using them." )
-	DEFINE_SCRIPTFUNC( DisableEntityListening, "Disables the 'OnEntity' hooks." )
-
-	BEGIN_SCRIPTHOOK( g_Hook_OnEntityCreated, "OnEntityCreated", FIELD_VOID, "Called when an entity is created. Requires EnableEntityListening() to be fired beforehand." )
-		DEFINE_SCRIPTHOOK_PARAM( "entity", FIELD_HSCRIPT )
-	END_SCRIPTHOOK()
-
-	BEGIN_SCRIPTHOOK( g_Hook_OnEntityDeleted, "OnEntityDeleted", FIELD_VOID, "Called when an entity is deleted. Requires EnableEntityListening() to be fired beforehand." )
-		DEFINE_SCRIPTHOOK_PARAM( "entity", FIELD_HSCRIPT )
-	END_SCRIPTHOOK()
 END_SCRIPTDESC();
 
 //-----------------------------------------------------------------------------
@@ -212,8 +165,6 @@ public:
 	void SetVarFloat( int i, float value );
 	void SetVarVector( int i, const Vector &value );
 
-	const char *GetVarName( int i );
-
 private:
 	IMaterialVar *m_MaterialVars[SCRIPT_MAT_PROXY_MAX_VARS];
 
@@ -243,16 +194,12 @@ BEGIN_SCRIPTDESC_ROOT_NAMED( CScriptMaterialProxy, "CScriptMaterialProxy", "Mate
 	DEFINE_SCRIPTFUNC( SetVarInt, "Sets a material var's int value" )
 	DEFINE_SCRIPTFUNC( SetVarFloat, "Sets a material var's float value" )
 	DEFINE_SCRIPTFUNC( SetVarVector, "Sets a material var's vector value" )
-
-	DEFINE_SCRIPTFUNC( GetVarName, "Gets a material var's name" )
 END_SCRIPTDESC();
 
 CScriptMaterialProxy::CScriptMaterialProxy()
 {
 	m_hScriptInstance = NULL;
 	m_hFuncOnBind = NULL;
-
-	V_memset( m_MaterialVars, 0, sizeof(m_MaterialVars) );
 }
 
 CScriptMaterialProxy::~CScriptMaterialProxy()
@@ -369,25 +316,26 @@ void CScriptMaterialProxy::TermScript()
 
 void CScriptMaterialProxy::OnBind( void *pRenderable )
 {
+	if( !pRenderable )
+		return;
+
 	if (m_hFuncOnBind != NULL)
 	{
-		C_BaseEntity *pEnt = NULL;
-		if (pRenderable)
+		IClientRenderable *pRend = ( IClientRenderable* )pRenderable;
+		C_BaseEntity *pEnt = pRend->GetIClientUnknown()->GetBaseEntity();
+		if ( pEnt )
 		{
-			IClientRenderable *pRend = (IClientRenderable*)pRenderable;
-			pEnt = pRend->GetIClientUnknown()->GetBaseEntity();
-			if ( pEnt )
-			{
-				g_pScriptVM->SetValue( m_ScriptScope, "entity", pEnt->GetScriptInstance() );
-			}
+			g_pScriptVM->SetValue( m_ScriptScope, "entity", pEnt->GetScriptInstance() );
 		}
-
-		if (!pEnt)
+		else
 		{
+			// Needs to register as a null value so the script doesn't break if it looks for an entity
 			g_pScriptVM->SetValue( m_ScriptScope, "entity", SCRIPT_VARIANT_NULL );
 		}
 
 		m_ScriptScope.Call( m_hFuncOnBind, NULL );
+
+		g_pScriptVM->ClearValue( m_ScriptScope, "entity" );
 	}
 	else
 	{
@@ -464,14 +412,6 @@ void CScriptMaterialProxy::SetVarVector( int i, const Vector &value )
 		return;
 
 	return m_MaterialVars[i]->SetVecValue( value.Base(), 3 );
-}
-
-const char *CScriptMaterialProxy::GetVarName( int i )
-{
-	if (!ValidateIndex( i ) || !m_MaterialVars[i])
-		return NULL;
-
-	return m_MaterialVars[i]->GetName();
 }
 
 EXPOSE_INTERFACE( CScriptMaterialProxy, IMaterialProxy, "VScriptProxy" IMATERIAL_PROXY_INTERFACE_VERSION );
@@ -645,11 +585,6 @@ bool VScriptClientInit()
 #else
 				Log( "VSCRIPT: Started VScript virtual machine using script language '%s'\n", g_pScriptVM->GetLanguageName() );
 #endif
-
-#ifdef MAPBASE_VSCRIPT
-				GetScriptHookManager().OnInit();
-#endif
-
 				ScriptRegisterFunction( g_pScriptVM, GetMapName, "Get the name of the map.");
 				ScriptRegisterFunction( g_pScriptVM, Time, "Get the current server time" );
 				ScriptRegisterFunction( g_pScriptVM, DoUniqueString, SCRIPT_ALIAS( "UniqueString", "Generate a string guaranteed to be unique across the life of the script VM, with an optional root string." ) );
@@ -661,20 +596,6 @@ bool VScriptClientInit()
 				ScriptRegisterFunction( g_pScriptVM, ScreenHeight, "Height of the screen in pixels" );
 				ScriptRegisterFunction( g_pScriptVM, IsWindowedMode, "" );
 				ScriptRegisterFunctionNamed( g_pScriptVM, ScriptScreenTransform, "ScreenTransform", "Get the x & y positions of a world position in screen space. Returns true if it's onscreen" );
-
-				ScriptRegisterFunction( g_pScriptVM, MainViewOrigin, "" );
-				ScriptRegisterFunction( g_pScriptVM, MainViewAngles, "" );
-				ScriptRegisterFunction( g_pScriptVM, PrevMainViewOrigin, "" );
-				ScriptRegisterFunction( g_pScriptVM, PrevMainViewAngles, "" );
-				ScriptRegisterFunction( g_pScriptVM, MainViewForward, "" );
-				ScriptRegisterFunction( g_pScriptVM, MainViewRight, "" );
-				ScriptRegisterFunction( g_pScriptVM, MainViewUp, "" );
-
-				ScriptRegisterFunction( g_pScriptVM, CurrentViewOrigin, "" );
-				ScriptRegisterFunction( g_pScriptVM, CurrentViewAngles, "" );
-				ScriptRegisterFunction( g_pScriptVM, CurrentViewForward, "" );
-				ScriptRegisterFunction( g_pScriptVM, CurrentViewRight, "" );
-				ScriptRegisterFunction( g_pScriptVM, CurrentViewUp, "" );
 
 				ScriptRegisterFunction( g_pScriptVM, CreateProp, "Create an animating prop" );
 #endif
@@ -706,10 +627,6 @@ bool VScriptClientInit()
 
 				VScriptRunScript( "vscript_client", true );
 				VScriptRunScript( "mapspawn", false );
-
-#ifdef MAPBASE_VSCRIPT
-				RunAddonScripts();
-#endif
 
 				VMPROF_SHOW( pszScriptLanguage, "virtual machine startup" );
 
@@ -779,8 +696,6 @@ public:
 	{
 #ifdef MAPBASE_VSCRIPT
 		g_ScriptNetMsg->LevelShutdownPreVM();
-
-		GetScriptHookManager().OnShutdown();
 #endif
 		VScriptClientTerm();
 	}

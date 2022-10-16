@@ -292,11 +292,8 @@ ClientModeShared::ClientModeShared()
 	m_pWeaponSelection = NULL;
 	m_nRootSize[ 0 ] = m_nRootSize[ 1 ] = -1;
 
-#ifdef MAPBASE // From Alien Swarm SDK
 	m_pCurrentPostProcessController = NULL;
 	m_PostProcessLerpTimer.Invalidate();
-	m_pCurrentColorCorrection = NULL;
-#endif
 
 #if defined( REPLAY_ENABLED )
 	m_pReplayReminderPanel = NULL;
@@ -637,43 +634,6 @@ void ClientModeShared::Update()
 		engine->Con_NPrintf( 0, "# Active particle systems: %i", nCount );
 	}
 }
-
-#ifdef MAPBASE // From Alien Swarm SDK
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void ClientModeShared::OnColorCorrectionWeightsReset( void )
-{
-	C_ColorCorrection *pNewColorCorrection = NULL;
-	C_ColorCorrection *pOldColorCorrection = m_pCurrentColorCorrection;
-	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( pPlayer )
-	{
-		pNewColorCorrection = pPlayer->GetActiveColorCorrection();
-	}
-
-	if ( pNewColorCorrection != pOldColorCorrection )
-	{
-		if ( pOldColorCorrection )
-		{
-			pOldColorCorrection->EnableOnClient( false );
-		}
-		if ( pNewColorCorrection )
-		{
-			pNewColorCorrection->EnableOnClient( true, pOldColorCorrection == NULL );
-		}
-		m_pCurrentColorCorrection = pNewColorCorrection;
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-float ClientModeShared::GetColorCorrectionScale( void ) const
-{
-	return 1.0f;
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // This processes all input before SV Move messages are sent
@@ -1299,7 +1259,7 @@ void ClientModeShared::FireGameEvent( IGameEvent *event )
 			}
 		}
 
-		if ( team == 0 && GetLocalTeam() )
+		if ( team == 0 && GetLocalTeam() > 0 )
 		{
 			bValidTeam = false;
 		}

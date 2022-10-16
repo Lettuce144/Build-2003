@@ -38,7 +38,6 @@ class C_BaseClientShader
 */
 
 class IRagdoll;
-class C_ClientRagdoll;
 class CIKContext;
 class CIKState;
 class ConVar;
@@ -80,7 +79,7 @@ public:
 	QAngle	m_angRotation;
 	Vector	m_vOriginVelocity;
 	int		m_nLastFramecount : 31;
-	bool	m_bAnglesComputed : 1;
+	int		m_bAnglesComputed : 1;
 };
 
 
@@ -302,7 +301,6 @@ public:
 	bool							IsRagdoll() const;
 	bool							IsAboutToRagdoll() const;
 	virtual C_BaseAnimating			*BecomeRagdollOnClient();
-	virtual C_ClientRagdoll			*CreateClientRagdoll( bool bRestoring = false );
 	C_BaseAnimating					*CreateRagdollCopy();
 	bool							InitAsClientRagdoll( const matrix3x4_t *pDeltaBones0, const matrix3x4_t *pDeltaBones1, const matrix3x4_t *pCurrentBonePosition, float boneDt, bool bFixedConstraints=false );
 	void							IgniteRagdoll( C_BaseAnimating *pSource );
@@ -355,8 +353,6 @@ public:
 	virtual void					UpdateClientSideAnimation();
 	void							ClientSideAnimationChanged();
 	virtual unsigned int			ComputeClientSideAnimationFlags();
-
-	virtual void					ReachedEndOfSequence() { return; }
 
 	virtual void ResetClientsideFrame( void ) { SetCycle( 0 ); }
 
@@ -468,11 +464,6 @@ public:
 	HSCRIPT ScriptGetAttachmentMatrix(int iAttachment);
 
 	void	ScriptGetBoneTransform( int iBone, HSCRIPT hTransform );
-	void	ScriptSetBoneTransform( int iBone, HSCRIPT hTransform );
-
-	void		ScriptAttachEntityToBone( HSCRIPT attachTarget, int boneIndexAttached, const Vector &bonePosition, const QAngle &boneAngles );
-	void		ScriptRemoveBoneAttachment( HSCRIPT boneAttachment );
-	HSCRIPT		ScriptGetBoneAttachment( int i );
 
 	int		ScriptGetSequenceActivity( int iSequence ) { return GetSequenceActivity( iSequence ); }
 	float	ScriptGetSequenceMoveDist( int iSequence ) { return GetSequenceMoveDist( GetModelPtr(), iSequence ); }
@@ -491,7 +482,6 @@ public:
 
 	static ScriptHook_t	g_Hook_OnClientRagdoll;
 	static ScriptHook_t	g_Hook_FireEvent;
-	//static ScriptHook_t	g_Hook_BuildTransformations; // UNDONE: Thread access issues
 
 	float							ScriptGetPoseParameter(const char* szName);
 #endif
@@ -531,10 +521,6 @@ private:
 
 public:
 	CRagdoll						*m_pRagdoll;
-	C_BaseAnimating					*m_pClientsideRagdoll;	// From Alien Swarm SDK
-#ifdef MAPBASE
-	C_BaseAnimating					*m_pServerRagdoll;	// Not from Alien Swarm SDK (note that this can exist without the entity having died)
-#endif
 
 	// Texture group to use
 	int								m_nSkin;
@@ -737,10 +723,6 @@ public:
 
 	bool m_bFadeOut;
 	bool m_bImportant;
-#ifdef MAPBASE
-	// Required to save/restore Alien Swarm SDK ragdoll LRU forced fade
-	float m_flForcedRetireTime;
-#endif
 	float m_flEffectTime;
 
 private:

@@ -23,10 +23,7 @@
 #include "hintsystem.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "c_env_fog_controller.h"
-#ifdef MAPBASE // From Alien Swarm SDK
 #include "c_postprocesscontroller.h"
-#include "c_colorcorrection.h"
-#endif
 #include "igameevents.h"
 #include "GameEventListener.h"
 
@@ -207,11 +204,6 @@ public:
 	void						SetMaxSpeed( float flMaxSpeed ) { m_flMaxspeed = flMaxSpeed; }
 	float						MaxSpeed() const		{ return m_flMaxspeed; }
 
-#ifdef MAPBASE
-	// See c_baseplayer.cpp
-	virtual ShadowType_t		ShadowCastType();
-	virtual bool				ShouldReceiveProjectedTextures( int flags );
-#else
 	// Should this object cast shadows?
 	virtual ShadowType_t		ShadowCastType() { return SHADOWS_NONE; }
 
@@ -219,7 +211,6 @@ public:
 	{
 		return false;
 	}
-#endif
 
 
 	bool						IsLocalPlayer( void ) const;
@@ -390,10 +381,7 @@ public:
 	void					UpdateFogController( void );
 	void					UpdateFogBlend( void );
 
-#ifdef MAPBASE // From Alien Swarm SDK
 	C_PostProcessController* GetActivePostProcessController() const;
-	C_ColorCorrection*		GetActiveColorCorrection() const;
-#endif
 
 	float					GetFOVTime( void ){ return m_flFOVTime; }
 
@@ -470,8 +458,6 @@ public:
 
 	// Allows the player's model to draw on non-main views, like monitors or mirrors.
 	bool			m_bDrawPlayerModelExternally;
-
-	bool			m_bInTriggerFall;
 #endif
 
 protected:
@@ -659,10 +645,7 @@ private:
 	// One for left and one for right side of step
 	StepSoundCache_t		m_StepSoundCache[ 2 ];
 
-#ifdef MAPBASE // From Alien Swarm SDK
-	CNetworkHandle( C_PostProcessController, m_hPostProcessCtrl );	// active postprocessing controller
-	CNetworkHandle( C_ColorCorrection, m_hColorCorrectionCtrl );	// active FXVolume color correction
-#endif
+	CNetworkHandle(C_PostProcessController, m_hPostProcessCtrl);	// active postprocessing controller
 
 public:
 

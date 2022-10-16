@@ -3917,11 +3917,13 @@ void CGameMovement::CheckFalling( void )
 		return;
 
 #ifdef MAPBASE
+#ifdef GAME_DLL // Let's hope we could work without transmitting to the client...
 	if ( player->m_bInTriggerFall )
 	{
-		// This value lets the existing fall damage functions ensure a fatal fall.
+		// This lets the fall damage functions do their magic without having to change them.
 		player->m_Local.m_flFallVelocity += (PLAYER_FATAL_FALL_SPEED + PLAYER_LAND_ON_FLOATING_OBJECT);
 	}
+#endif
 #endif
 
 	if ( !IsDead() && player->m_Local.m_flFallVelocity >= PLAYER_FALL_PUNCH_THRESHOLD )
@@ -3929,11 +3931,7 @@ void CGameMovement::CheckFalling( void )
 		bool bAlive = true;
 		float fvol = 0.5;
 
-#ifdef MAPBASE
-		if ( player->GetWaterLevel() > 0 && !player->m_bInTriggerFall )
-#else
 		if ( player->GetWaterLevel() > 0 )
-#endif
 		{
 			// They landed in water.
 		}

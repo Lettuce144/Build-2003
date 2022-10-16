@@ -11,157 +11,131 @@
 #include <stdlib.h>
 #include <string.h>
 #include "basetypes.h"
-#include "tier1.h"
-#include "utldict.h"
+#include "tier1/tier1.h"
+#include "tier1/utldict.h"
 #include "Color.h"
-#include "mapbase_con_groups.h"
-#include "KeyValues.h"
-#include "filesystem.h"
-#include "mapbase_matchers_base.h"
+#include "tier1/mapbase_con_groups.h"
+
+void CV_ColorChanged( IConVar *pConVar, const char *pOldString, float flOldValue );
 
 struct ConGroup_t
 {
-	ConGroup_t( const char *_pszName, const char *_pszDescription )
+	ConGroup_t( const char *_pszName, ConVar *pCvar )
 	{
 		pszName = _pszName;
-		pszDescription = _pszDescription;
-		_clr.SetColor( 224, 224, 224, 255 ); // Default to a shade of gray
+		cvar = pCvar;
 	}
 
 	const Color &GetColor()
 	{
+		if (_clr.a() == 0)
+		{
+			// Read the cvar
+			int clr[3];
+			sscanf( cvar->GetString(), "%i %i %i", &clr[0], &clr[1], &clr[2] );
+			_clr.SetColor( clr[0], clr[1], clr[2], 255 );
+		}
 		return _clr;
 	}
 
 	const char *pszName;
-	const char *pszDescription;
 	Color _clr;
+	ConVar *cvar;
 
-	bool bDisabled;
+	//bool bDisabled;
 };
 
-// TODO: Something more reliable?
-static bool g_bIncludeConGroupNames = false;
+//-----------------------------------------------------------------------------
+// To define a console group, 
+//-----------------------------------------------------------------------------
+
+#define DEFINE_CON_GROUP_CVAR(name, def, desc) static ConVar con_group_##name##_color( "con_group_" #name "_color", def, FCVAR_ARCHIVE | FCVAR_REPLICATED, desc, CV_ColorChanged )
+
+DEFINE_CON_GROUP_CVAR( mapbase_misc, "192 128 224", "Messages from misc. Mapbase functions, like map-specific files." );
+DEFINE_CON_GROUP_CVAR( physics, "159 209 159", "Messages from physics-related events." );
+
+DEFINE_CON_GROUP_CVAR( inputoutput, "220 170 220", "Messages from I/O events. (these display in developer 2)" );
+DEFINE_CON_GROUP_CVAR( npc_ai, "240 160 200", "Messages from NPC AI, etc. which display at various verbse levels." );
+DEFINE_CON_GROUP_CVAR( npc_scripts, "255 115 215", "Messages from scripted_sequence, etc. (these display in developer 2)" );
+DEFINE_CON_GROUP_CVAR( choreo, "240 224 180", "Messages from choreographed scenes and response expressers. (these display in developer 1, 2, etc.)" );
+
+DEFINE_CON_GROUP_CVAR( vscript, "192 224 240", "Internal messages from VScript not produced by the user's scripts." );
+DEFINE_CON_GROUP_CVAR( vscript_print, "80 186 255", "Messages from VScript's 'print' function." );
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-//#define DEFINE_CON_GROUP(id, name, codename) { name, &con_group_##codename##_color }
-#define DEFINE_CON_GROUP(id, name, description) { name, description }
+#define DEFINE_CON_GROUP(id, name, codename) { name, &con_group_##codename##_color }
 
 ConGroup_t g_ConGroups[CON_GROUP_MAX] = {
 
 	// General
-	DEFINE_CON_GROUP( CON_GROUP_MAPBASE_MISC, "Mapbase misc.", "Messages from misc. Mapbase functions, like map-specific files." ),
-	DEFINE_CON_GROUP( CON_GROUP_PHYSICS, "Physics", "Messages from physics-related events." ),
-	DEFINE_CON_GROUP( CON_GROUP_IO_SYSTEM, "Entity IO", "Messages from I/O events. (these display in developer 2)" ),
-	DEFINE_CON_GROUP( CON_GROUP_RESPONSE_SYSTEM, "Response System", "Messages from the Response System, a library primarily used for NPC speech." ),
+	DEFINE_CON_GROUP( CON_GROUP_MAPBASE_MISC, "Mapbase misc.", mapbase_misc ),
+	DEFINE_CON_GROUP( CON_GROUP_PHYSICS, "Physics", physics ),
 
-	// Game
-	DEFINE_CON_GROUP( CON_GROUP_NPC_AI, "NPC AI", "Messages from NPC AI, etc. which display at various verbose levels." ),
-	DEFINE_CON_GROUP( CON_GROUP_NPC_SCRIPTS, "NPC scripts", "Messages from scripted_sequence, etc. (these display in developer 2)" ),
-	DEFINE_CON_GROUP( CON_GROUP_SPEECH_AI, "Speech AI", "Messages from response expressers. (these display in developer 1, 2, etc.)" ),
-	DEFINE_CON_GROUP( CON_GROUP_CHOREO, "Choreo", "Messages from choreographed scenes. (these display in developer 1, 2, etc.)" ),
+	// Server
+	DEFINE_CON_GROUP( CON_GROUP_IO_SYSTEM, "Entity IO", inputoutput ),
+	DEFINE_CON_GROUP( CON_GROUP_NPC_AI, "NPC AI", npc_ai ),
+	DEFINE_CON_GROUP( CON_GROUP_NPC_SCRIPTS, "NPC scripts", npc_scripts ),
+	DEFINE_CON_GROUP( CON_GROUP_CHOREO, "Choreo", choreo ),
 
 	// VScript
-	DEFINE_CON_GROUP( CON_GROUP_VSCRIPT, "VScript", "Internal messages from VScript not produced by actual scripts." ),
-	DEFINE_CON_GROUP( CON_GROUP_VSCRIPT_PRINT, "VScript print", "Messages from VScript's 'print' function." ),
+	DEFINE_CON_GROUP( CON_GROUP_VSCRIPT, "VScript", vscript ),
+	DEFINE_CON_GROUP( CON_GROUP_VSCRIPT_PRINT, "VScript print", vscript_print ),
 
 };
 
-int FindConGroup( const char *pszName )
+void CV_ColorChanged( IConVar *pConVar, const char *pOldString, float flOldValue )
 {
 	for (int i = 0; i < CON_GROUP_MAX; i++)
 	{
-		if (Q_stricmp( pszName, g_ConGroups[i].pszName ) == 0)
-			return i;
+		// Reset the alpha to indicate it needs to be refreshed
+		g_ConGroups[i]._clr[3] = 0;
 	}
-
-	return -1;
 }
 
 //-----------------------------------------------------------------------------
-// Loads console groups
 //-----------------------------------------------------------------------------
-void LoadConsoleGroupsFromFile( IBaseFileSystem *filesystem, const char *pszFileName, const char *pathID )
-{
-	KeyValues *pGroupRoot = new KeyValues( "ConsoleGroups" );
 
-	pGroupRoot->LoadFromFile( filesystem, pszFileName, pathID );
+ConVar con_group_include_name( "con_group_include_name", "0", FCVAR_NONE, "Includes groups when printing." );
 
-	KeyValues *pGroup = NULL;
-	for ( pGroup = pGroupRoot->GetFirstTrueSubKey(); pGroup; pGroup = pGroup->GetNextTrueSubKey() )
-	{
-		int index = FindConGroup( pGroup->GetName() );
-		if (index != -1)
-		{
-			Color msgClr = pGroup->GetColor( "MessageColor" );
-
-			// Make sure the color isn't 0,0,0,0 before assigning
-			if (msgClr.GetRawColor() != 0)
-				g_ConGroups[index]._clr = msgClr;
-
-			g_ConGroups[index].bDisabled = pGroup->GetBool( "Disabled", false );
-		}
-		else
-		{
-			Warning( "Invalid console group %s (new groups should be defined in the code)\n", pGroup->GetName() );
-		}
-	}
-
-	pGroupRoot->deleteThis();
-}
-
-void InitConsoleGroups( IBaseFileSystem *filesystem )
-{
-	LoadConsoleGroupsFromFile( filesystem, "scripts/mapbase_con_groups.txt", "MOD" );
-	LoadConsoleGroupsFromFile( filesystem, "scripts/mod_con_groups.txt", "MOD" );
-}
-
-void PrintAllConsoleGroups()
+CON_COMMAND( con_group_list, "Prints a list of all console groups." )
 {
 	Msg( "============================================================\n" );
 	for (int i = 0; i < CON_GROUP_MAX; i++)
 	{
-		ConColorMsg( g_ConGroups[i].GetColor(), "	# %s", g_ConGroups[i].pszName );
+		Msg( "	# " );
+		ConColorMsg( g_ConGroups[i].GetColor(), "%s", g_ConGroups[i].pszName );
+		Msg( " - %s ", g_ConGroups[i].cvar->GetHelpText() );
 
-		if (g_ConGroups[i].bDisabled)
-			Msg(" [DISABLED]");
-
-		Msg( " - %s ", g_ConGroups[i].pszDescription );
+		//if (g_ConGroups[i].bDisabled)
+		//	Msg("(DISABLED)");
 
 		Msg("\n");
 	}
 	Msg( "============================================================\n" );
 }
 
-void ToggleConsoleGroups( const char *pszQuery )
+// TODO: Figure out how this can be done without server/client disparity issues
+/*
+CON_COMMAND( con_group_toggle, "Toggles a console group." )
 {
-	bool bMatched = false;
-
+	const char *pszGroup = args.Arg( 1 );
 	for (int i = 0; i < ARRAYSIZE( g_ConGroups ); i++)
 	{
-		if (Matcher_NamesMatch( pszQuery, g_ConGroups[i].pszName ))
+		if (V_stricmp(pszGroup, g_ConGroups[i].pszName) == 0)
 		{
 			Msg( "%s is now %s\n", g_ConGroups[i].pszName, g_ConGroups[i].bDisabled ? "enabled" : "disabled" );
 			g_ConGroups[i].bDisabled = !g_ConGroups[i].bDisabled;
-			bMatched = true;
+			return;
 		}
 	}
 
-	if (!bMatched)
-		Msg( "No groups matching \"%s\"\n", pszQuery );
+	Msg( "No group named \"%s\"\n", pszGroup );
 }
+*/
 
-void SetConsoleGroupIncludeNames( bool bToggle )
-{
-	g_bIncludeConGroupNames = bToggle;
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-void CGMsg( int level, ConGroupID_t nGroup, const tchar* pMsg, ... )
+void CGMsg( int level, int nGroup, const tchar* pMsg, ... )
 {
 	// Return early if we're not at this level
 	if (!IsSpewActive("developer", level))
@@ -178,16 +152,16 @@ void CGMsg( int level, ConGroupID_t nGroup, const tchar* pMsg, ... )
 
 	ConGroup_t *pGroup = &g_ConGroups[nGroup];
 
-	if (pGroup->bDisabled)
+	/*if (pGroup->bDisabled)
 	{
-		// Do nothing
+	// Do nothing
 	}
-	else if (g_bIncludeConGroupNames)
+	else*/ if (con_group_include_name.GetBool())
 	{
 		ConColorMsg(level, pGroup->GetColor(), "[%s] %s", pGroup->pszName, string);
 	}
 	else
 	{
-		ConColorMsg(level, pGroup->GetColor(), "%s", string);
+		ConColorMsg(level, pGroup->GetColor(), string);
 	}
 }

@@ -64,10 +64,8 @@ public:
 
 	virtual void Precache()
 	{
-#ifndef MAPBASE // This is now done in CNPC_PlayerCompanion::Precache()
 		// Prevents a warning
-		SelectModel();
-#endif
+		SelectModel( );
 		BaseClass::Precache();
 
 		PrecacheScriptSound( "NPC_Fisherman.FootstepLeft" );

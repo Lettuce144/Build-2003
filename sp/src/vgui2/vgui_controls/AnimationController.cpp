@@ -31,11 +31,6 @@ using namespace vgui;
 
 static CUtlSymbolTable g_ScriptSymbols(0, 128, true);
 
-#ifdef MAPBASE
-// Allows animation sequences to be overridden by map-specific files
-extern bool g_bUsingCustomHudAnimations;
-#endif
-
 // singleton accessor for animation controller for use by the vgui controls
 namespace vgui
 {
@@ -322,35 +317,11 @@ bool AnimationController::ParseScriptFile(char *pMem, int length)
 			return false;
 		}
 		
-		int seqIndex = -1;
+		int seqIndex;
 		UtlSymId_t nameIndex = g_ScriptSymbols.AddString(token);
 				
-#ifdef MAPBASE
-		if (g_bUsingCustomHudAnimations)
-		{
-			// look through for the sequence
-			for (seqIndex = 0; seqIndex < m_Sequences.Count(); seqIndex++)
-			{
-				if (m_Sequences[seqIndex].name == nameIndex)
-					break;
-			}
-
-			if (seqIndex >= m_Sequences.Count())
-				seqIndex = -1;
-			else
-			{
-				// Clear some stuff
-				m_Sequences[seqIndex].cmdList.RemoveAll();
-			}
-		}
-
-		if (seqIndex == -1)
-#endif
-		{
-			// Create a new sequence
-			seqIndex = m_Sequences.AddToTail();
-		}
-
+		// Create a new sequence
+		seqIndex = m_Sequences.AddToTail();
 		AnimSequence_t &seq = m_Sequences[seqIndex];
 		seq.name = nameIndex;
 		seq.duration = 0.0f;

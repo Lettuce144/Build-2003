@@ -125,15 +125,9 @@ void C_BaseCombatWeapon::OnRestore()
 
 int C_BaseCombatWeapon::GetWorldModelIndex( void )
 {
-#ifdef MAPBASE
-	int iIndex = GetOwner() ? m_iWorldModelIndex.Get() : m_iDroppedModelIndex.Get();
-#else
-	int iIndex = m_iWorldModelIndex.Get();
-#endif
-
 	if ( GameRules() )
 	{
-		const char *pBaseName = modelinfo->GetModelName( modelinfo->GetModel( iIndex ) );
+		const char *pBaseName = modelinfo->GetModelName( modelinfo->GetModel( m_iWorldModelIndex ) );
 		const char *pTranslatedName = GameRules()->TranslateEffectForVisionFilter( "weapons", pBaseName );
 
 		if ( pTranslatedName != pBaseName )
@@ -142,7 +136,7 @@ int C_BaseCombatWeapon::GetWorldModelIndex( void )
 		}
 	}
 
-	return iIndex;
+	return m_iWorldModelIndex;
 }
 
 //-----------------------------------------------------------------------------
@@ -508,44 +502,25 @@ int C_BaseCombatWeapon::DrawModel( int flags )
 	// check if local player chases owner of this weapon in first person
 	C_BasePlayer *localplayer = C_BasePlayer::GetLocalPlayer();
 
-	if ( localplayer )
+	if ( localplayer && localplayer->IsObserver() && GetOwner() )
 	{
 #ifdef MAPBASE
 		if (localplayer->m_bDrawPlayerModelExternally)
 		{
 			// If this isn't the main view, draw the weapon.
 			view_id_t viewID = CurrentViewID();
-			if ( (!localplayer->InFirstPersonView() || (viewID != VIEW_MAIN && viewID != VIEW_INTRO_CAMERA)) && (viewID != VIEW_SHADOW_DEPTH_TEXTURE || !localplayer->IsEffectActive(EF_DIMLIGHT)) )
-			{
-				// TODO: Is this inefficient?
-				int nModelIndex = GetModelIndex();
-				int nWorldModelIndex = GetWorldModelIndex();
-				if (nModelIndex != nWorldModelIndex)
-				{
-					SetModelIndex(nWorldModelIndex);
-				}
-
-				int iDraw = BaseClass::DrawModel(flags);
-
-				if (nModelIndex != nWorldModelIndex)
-				{
-					SetModelIndex(nModelIndex);
-				}
-
-				return iDraw;
-			}
+			if (viewID != VIEW_MAIN && viewID != VIEW_INTRO_CAMERA)
+				return BaseClass::DrawModel( flags );
 		}
 #endif
-		if ( localplayer->IsObserver() && GetOwner() )
-		{
-			// don't draw weapon if chasing this guy as spectator
-			// we don't check that in ShouldDraw() since this may change
-			// without notification 
+
+		// don't draw weapon if chasing this guy as spectator
+		// we don't check that in ShouldDraw() since this may change
+		// without notification 
 		
-			if ( localplayer->GetObserverMode() == OBS_MODE_IN_EYE &&
-				 localplayer->GetObserverTarget() == GetOwner() ) 
-				return false;
-		}
+		if ( localplayer->GetObserverMode() == OBS_MODE_IN_EYE &&
+			 localplayer->GetObserverTarget() == GetOwner() ) 
+			return false;
 	}
 
 	return BaseClass::DrawModel( flags );

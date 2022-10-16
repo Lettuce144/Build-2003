@@ -259,9 +259,6 @@ LINK_ENTITY_TO_CLASS( client_ragdoll, C_ClientRagdoll );
 BEGIN_DATADESC( C_ClientRagdoll )
 	DEFINE_FIELD( m_bFadeOut, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bImportant, FIELD_BOOLEAN ),
-#ifdef MAPBASE
-	DEFINE_FIELD( m_flForcedRetireTime, FIELD_FLOAT ),
-#endif
 	DEFINE_FIELD( m_iCurrentFriction, FIELD_INTEGER ),
 	DEFINE_FIELD( m_iMinFriction, FIELD_INTEGER ),
 	DEFINE_FIELD( m_iMaxFriction, FIELD_INTEGER ),
@@ -297,7 +294,6 @@ END_SCRIPTDESC();
 
 ScriptHook_t	C_BaseAnimating::g_Hook_OnClientRagdoll;
 ScriptHook_t	C_BaseAnimating::g_Hook_FireEvent;
-//ScriptHook_t	C_BaseAnimating::g_Hook_BuildTransformations;
 #endif
 
 BEGIN_ENT_SCRIPTDESC( C_BaseAnimating, C_BaseEntity, "Animating models client-side" )
@@ -314,14 +310,6 @@ BEGIN_ENT_SCRIPTDESC( C_BaseAnimating, C_BaseEntity, "Animating models client-si
 
 	DEFINE_SCRIPTFUNC( LookupBone, "Get the named bone id" )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetBoneTransform, "GetBoneTransform", "Get the transform for the specified bone" )
-	DEFINE_SCRIPTFUNC_NAMED( ScriptSetBoneTransform, "SetBoneTransform", "Set the transform for the specified bone" )
-
-	DEFINE_SCRIPTFUNC_NAMED( ScriptAttachEntityToBone, "AttachEntityToBone", "Attaches this entity to the specified target and bone. Also allows for optional local position offset" )
-	DEFINE_SCRIPTFUNC_NAMED( ScriptRemoveBoneAttachment, "RemoveBoneAttachment", "Removes the specified bone attachment" )
-	//DEFINE_SCRIPTFUNC( RemoveBoneAttachments, "Removes all bone attachments" )
-	DEFINE_SCRIPTFUNC( DestroyBoneAttachments, "Destroys all bone attachments" )
-	DEFINE_SCRIPTFUNC( GetNumBoneAttachments, "Gets the number of bone attachments" )
-	DEFINE_SCRIPTFUNC_NAMED( ScriptGetBoneAttachment, "GetBoneAttachment", "Gets the specified bone attachment" )
 
 	DEFINE_SCRIPTFUNC( SetBodygroup, "Sets a bodygroup")
 	DEFINE_SCRIPTFUNC( GetBodygroup, "Gets a bodygroup" )
@@ -332,7 +320,7 @@ BEGIN_ENT_SCRIPTDESC( C_BaseAnimating, C_BaseEntity, "Animating models client-si
 
 	DEFINE_SCRIPTFUNC( GetSequence, "Gets the current sequence" )
 	DEFINE_SCRIPTFUNC( SetSequence, "Sets the current sequence" )
-	DEFINE_SCRIPTFUNC( SequenceLoops, "Does the current sequence loop?" )
+	DEFINE_SCRIPTFUNC( SequenceLoops, "Loops the current sequence" )
 	DEFINE_SCRIPTFUNC( LookupSequence, "Gets the index of the specified sequence name" )
 	DEFINE_SCRIPTFUNC( LookupActivity, "Gets the ID of the specified activity name" )
 	DEFINE_SCRIPTFUNC( GetSequenceName, "Gets the name of the specified sequence index" )
@@ -366,9 +354,6 @@ BEGIN_ENT_SCRIPTDESC( C_BaseAnimating, C_BaseEntity, "Animating models client-si
 		DEFINE_SCRIPTHOOK_PARAM( "event", FIELD_INTEGER )
 		DEFINE_SCRIPTHOOK_PARAM( "options", FIELD_CSTRING )
 	END_SCRIPTHOOK()
-
-	//BEGIN_SCRIPTHOOK( C_BaseAnimating::g_Hook_BuildTransformations, "BuildTransformations", FIELD_VOID, "Called when building bone transformations. Allows VScript to read/write any bone with Get/SetBoneTransform." )
-	//END_SCRIPTHOOK()
 #endif
 END_SCRIPTDESC();
 
@@ -380,9 +365,6 @@ C_ClientRagdoll::C_ClientRagdoll( bool bRestoring )
 	m_bFadeOut = false;
 	m_bFadingOut = false;
 	m_bImportant = false;
-#ifdef MAPBASE
-	m_flForcedRetireTime = 0.0f;
-#endif
 	m_bNoModelParticles = false;
 
 	SetClassname("client_ragdoll");
@@ -463,11 +445,7 @@ void C_ClientRagdoll::OnRestore( void )
 	
 	if ( m_bFadeOut == true )
 	{
-#ifdef MAPBASE
-		s_RagdollLRU.MoveToTopOfLRU( this, m_bImportant, m_flForcedRetireTime );
-#else
 		s_RagdollLRU.MoveToTopOfLRU( this, m_bImportant );
-#endif
 	}
 
 	NoteRagdollCreationTick( this );
@@ -794,10 +772,6 @@ C_BaseAnimating::C_BaseAnimating() :
 	m_nPrevSequence = -1;
 	m_nRestoreSequence = -1;
 	m_pRagdoll		= NULL;
-	m_pClientsideRagdoll = NULL;
-#ifdef MAPBASE
-	m_pServerRagdoll = NULL;
-#endif
 	m_builtRagdoll = false;
 	m_hitboxBoneCacheHandle = 0;
 	int i;
@@ -1564,43 +1538,10 @@ HSCRIPT C_BaseAnimating::ScriptGetAttachmentMatrix( int iAttachment )
 
 void C_BaseAnimating::ScriptGetBoneTransform( int iBone, HSCRIPT hTransform )
 {
-	matrix3x4_t *matTransform = HScriptToClass<matrix3x4_t>( hTransform );
-	if (matTransform == NULL)
+	if (hTransform == NULL)
 		return;
 
-	GetBoneTransform( iBone, *matTransform );
-}
-
-void C_BaseAnimating::ScriptSetBoneTransform( int iBone, HSCRIPT hTransform )
-{
-	matrix3x4_t *matTransform = HScriptToClass<matrix3x4_t>( hTransform );
-	if (matTransform == NULL)
-		return;
-
-	MatrixCopy( *matTransform, GetBoneForWrite( iBone ) );
-}
-
-void C_BaseAnimating::ScriptAttachEntityToBone( HSCRIPT attachTarget, int boneIndexAttached, const Vector &bonePosition, const QAngle &boneAngles )
-{
-	C_BaseEntity *pTarget = ToEnt( attachTarget );
-	if (pTarget == NULL)
-		return;
-
-	AttachEntityToBone( pTarget->GetBaseAnimating(), boneIndexAttached, bonePosition, boneAngles );
-}
-
-void C_BaseAnimating::ScriptRemoveBoneAttachment( HSCRIPT boneAttachment )
-{
-	C_BaseEntity *pTarget = ToEnt( boneAttachment );
-	if (pTarget == NULL)
-		return;
-
-	RemoveBoneAttachment( pTarget->GetBaseAnimating() );
-}
-
-HSCRIPT C_BaseAnimating::ScriptGetBoneAttachment( int i )
-{
-	return ToHScript( GetBoneAttachment( i ) );
+	GetBoneTransform( iBone, *HScriptToClass<matrix3x4_t>( hTransform ) );
 }
 
 HSCRIPT C_BaseAnimating::ScriptBecomeRagdollOnClient()
@@ -1778,23 +1719,7 @@ void C_BaseAnimating::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 		}
 	}
 	
-#ifdef MAPBASE_VSCRIPT
-	//if (m_ScriptScope.IsInitialized() && g_Hook_BuildTransformations.CanRunInScope(m_ScriptScope))
-	//{
-	//	int oldWritableBones = m_BoneAccessor.GetWritableBones();
-	//	int oldReadableBones = m_BoneAccessor.GetReadableBones();
-	//	m_BoneAccessor.SetWritableBones( BONE_USED_BY_ANYTHING );
-	//	m_BoneAccessor.SetReadableBones( BONE_USED_BY_ANYTHING );
-	//
-	//	// No parameters
-	//	//ScriptVariant_t args[] = {};
-	//	//ScriptVariant_t returnValue;
-	//	g_Hook_BuildTransformations.Call( m_ScriptScope, NULL, NULL /*&returnValue, args*/ );
-	//
-	//	m_BoneAccessor.SetWritableBones( oldWritableBones );
-	//	m_BoneAccessor.SetReadableBones( oldReadableBones );
-	//}
-#endif
+	
 }
 
 //-----------------------------------------------------------------------------
@@ -2000,10 +1925,6 @@ CollideType_t C_BaseAnimating::GetCollideType( void )
 	return BaseClass::GetCollideType();
 }
 
-#ifdef MAPBASE
-ConVar ai_death_pose_enabled( "ai_death_pose_enabled", "1", FCVAR_NONE, "Toggles the death pose fix code, which cancels sequence transitions while a NPC is ragdolling." );
-#endif
-
 //-----------------------------------------------------------------------------
 // Purpose: if the active sequence changes, keep track of the previous ones and decay them based on their decay rate
 //-----------------------------------------------------------------------------
@@ -2019,14 +1940,6 @@ void C_BaseAnimating::MaintainSequenceTransitions( IBoneSetup &boneSetup, float 
 		m_nPrevNewSequenceParity = m_nNewSequenceParity;
 		return;
 	}
-
-#ifdef MAPBASE
-	if ( IsAboutToRagdoll() && ai_death_pose_enabled.GetBool() )
-	{
-		m_nPrevNewSequenceParity = m_nNewSequenceParity;
-		return;
-	}
-#endif
 
 	m_SequenceTransitioner.CheckForSequenceChange( 
 		boneSetup.GetStudioHdr(),
@@ -2807,29 +2720,14 @@ void C_BaseAnimating::CalculateIKLocks( float currentTime )
 
 					// debugoverlay->AddBoxOverlay( origin, Vector( -1, -1, -1 ), Vector( 1, 1, 1 ), QAngle( 0, 0, 0 ), 255, 0, 0, 0, 0 );
 
-					Vector vecDelta = (origin - pTarget->est.pos);
-					float d = vecDelta.Length();
+					float d = (pTarget->est.pos - origin).Length();
 
 					if ( d >= flDist)
 						continue;
 
 					flDist = d;
-#ifdef MAPBASE
-					// For blending purposes, IK attachments should obey weight
-					if ( pTarget->est.flWeight < 1.0f )
-					{
-						Quaternion qTarget;
-						AngleQuaternion( angles, qTarget );
-
-						QuaternionSlerp( pTarget->est.q, qTarget, pTarget->est.flWeight, pTarget->est.q );
-						pTarget->SetPos( pTarget->est.pos + (vecDelta * pTarget->est.flWeight) );
-					}
-					else
-#endif
-					{
-						pTarget->SetPos( origin );
-						pTarget->SetAngles( angles );
-					}
+					pTarget->SetPos( origin );
+					pTarget->SetAngles( angles );
 					// debugoverlay->AddBoxOverlay( pTarget->est.pos, Vector( -pTarget->est.radius, -pTarget->est.radius, -pTarget->est.radius ), Vector( pTarget->est.radius, pTarget->est.radius, pTarget->est.radius), QAngle( 0, 0, 0 ), 0, 255, 0, 0, 0 );
 				}
 
@@ -4910,18 +4808,12 @@ void C_BaseAnimating::GetRagdollInitBoneArrays( matrix3x4_t *pDeltaBones0, matri
 	}
 }
 
-C_ClientRagdoll *C_BaseAnimating::CreateClientRagdoll( bool bRestoring )
-{
-	//DevMsg( "Creating ragdoll at tick %d\n", gpGlobals->tickcount );
-	return new C_ClientRagdoll( bRestoring );
-}
-
 C_BaseAnimating *C_BaseAnimating::CreateRagdollCopy()
 {
 	//Adrian: We now create a separate entity that becomes this entity's ragdoll.
 	//That way the server side version of this entity can go away. 
 	//Plus we can hook save/restore code to these ragdolls so they don't fall on restore anymore.
-	C_ClientRagdoll *pRagdoll = CreateClientRagdoll( false );
+	C_ClientRagdoll *pRagdoll = new C_ClientRagdoll( false );
 	if ( pRagdoll == NULL )
 		return NULL;
 
@@ -4989,26 +4881,26 @@ C_BaseAnimating *C_BaseAnimating::BecomeRagdollOnClient()
 {
 	MoveToLastReceivedPosition( true );
 	GetAbsOrigin();
-	m_pClientsideRagdoll = CreateRagdollCopy();
+	C_BaseAnimating *pRagdoll = CreateRagdollCopy();
 
 	matrix3x4_t boneDelta0[MAXSTUDIOBONES];
 	matrix3x4_t boneDelta1[MAXSTUDIOBONES];
 	matrix3x4_t currentBones[MAXSTUDIOBONES];
 	const float boneDt = 0.1f;
 	GetRagdollInitBoneArrays( boneDelta0, boneDelta1, currentBones, boneDt );
-	m_pClientsideRagdoll->InitAsClientRagdoll( boneDelta0, boneDelta1, currentBones, boneDt );
+	pRagdoll->InitAsClientRagdoll( boneDelta0, boneDelta1, currentBones, boneDt );
 
 #ifdef MAPBASE_VSCRIPT
 	// Hook for ragdolling
 	if (m_ScriptScope.IsInitialized() && g_Hook_OnClientRagdoll.CanRunInScope( m_ScriptScope ))
 	{
 		// ragdoll
-		ScriptVariant_t args[] = { ScriptVariant_t( m_pClientsideRagdoll->GetScriptInstance() ) };
+		ScriptVariant_t args[] = { ScriptVariant_t( pRagdoll->GetScriptInstance() ) };
 		g_Hook_OnClientRagdoll.Call( m_ScriptScope, NULL, args );
 	}
 #endif
 
-	return m_pClientsideRagdoll;
+	return pRagdoll;
 }
 
 bool C_BaseAnimating::InitAsClientRagdoll( const matrix3x4_t *pDeltaBones0, const matrix3x4_t *pDeltaBones1, const matrix3x4_t *pCurrentBonePosition, float boneDt, bool bFixedConstraints )
@@ -5474,11 +5366,6 @@ void C_BaseAnimating::StudioFrameAdvance()
 
 	if ( flNewCycle < 0.0f || flNewCycle >= 1.0f ) 
 	{
-		if (flNewCycle >= 1.0f)
-		{
-			ReachedEndOfSequence();
-		}
-
 		if ( IsSequenceLooping( hdr, GetSequence() ) )
 		{
 			 flNewCycle -= (int)(flNewCycle);

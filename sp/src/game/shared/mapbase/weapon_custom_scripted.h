@@ -77,7 +77,7 @@ public:
 	void			FinishReload( void );
 	void			AbortReload( void );
 	bool			Reload( void );
-	void			Reload_NPC( bool bPlaySound = true );
+	void			Reload_NPC( void );
 
 	// Weapon firing
 	void			PrimaryAttack( void );				// do "+ATTACK"

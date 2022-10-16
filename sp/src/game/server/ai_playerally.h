@@ -252,11 +252,6 @@ enum AISpeechTargetSearchFlags_t
 
 struct AISpeechSelection_t
 {
-#ifdef NEW_RESPONSE_SYSTEM
-	std::string		concept;
-	AI_Response		Response;
-	EHANDLE			hSpeechTarget;
-#else
 	AISpeechSelection_t()
 	 :	pResponse(NULL)
 	{
@@ -272,7 +267,6 @@ struct AISpeechSelection_t
 	std::string 		concept;
 	AI_Response *		pResponse;
 	EHANDLE			hSpeechTarget;				
-#endif
 };
 
 //-------------------------------------
