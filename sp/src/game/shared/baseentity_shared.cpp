@@ -38,11 +38,15 @@
 
 #endif
 
+// Had to change because this is just fucking everuthing up
+// The zombies are being lit on fire when being attacked by a crowbar
+
+/*
 #ifdef HL2_EPISODIC
 ConVar hl2_episodic( "hl2_episodic", "1", FCVAR_REPLICATED );
-#else
+#else*/
 ConVar hl2_episodic( "hl2_episodic", "0", FCVAR_REPLICATED );
-#endif//HL2_EPISODIC
+//#endif//HL2_EPISODIC
 
 #ifdef PORTAL
 	#include "prop_portal_shared.h"

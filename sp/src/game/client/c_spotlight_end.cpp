@@ -1,16 +1,13 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright � 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
 // $NoKeywords: $
-//=============================================================================//
+//=============================================================================
 
 #include "cbase.h"
 #include "dlight.h"
 #include "iefx.h"
-
-// memdbgon must be the last include file in a .cpp file!!!
-#include "tier0/memdbgon.h"
 
 //##################################################################
 //
@@ -20,29 +17,23 @@
 class C_SpotlightEnd : public C_BaseEntity
 {
 public:
-	DECLARE_CLASS( C_SpotlightEnd, C_BaseEntity );
+	DECLARE_CLASS(C_SpotlightEnd, C_BaseEntity);
 	DECLARE_CLIENTCLASS();
-	DECLARE_INTERPOLATION();
-
 	C_SpotlightEnd();
 
 public:
 	void	OnDataChanged(DataUpdateType_t updateType);
 	bool	ShouldDraw();
-	void	ClientThink( void );
+	void	ClientThink(void);
 
-	virtual bool ShouldInterpolate();
-
-
-//	Vector	m_vSpotlightOrg;
-//	Vector	m_vSpotlightDir;
+	Vector	m_vSpotlightOrg;
+	Vector	m_vSpotlightDir;
 	float	m_flLightScale;
 	float	m_Radius;
 
 private:
-	dlight_t*	m_pDynamicLight;
-
-	//dlight_t*	m_pModelLight;
+	dlight_t* m_pDynamicLight;
+	dlight_t* m_pModelLight;
 };
 
 //------------------------------------------------------------------------------
@@ -50,9 +41,9 @@ private:
 // Input   :
 // Output  :
 //------------------------------------------------------------------------------
-C_SpotlightEnd::C_SpotlightEnd(void) : /*m_pModelLight(0), */m_pDynamicLight(0)
+C_SpotlightEnd::C_SpotlightEnd(void) : m_pModelLight(0), m_pDynamicLight(0)
 {
-	m_flLightScale	= 100;
+	m_flLightScale = 100;
 }
 
 //------------------------------------------------------------------------------
@@ -62,9 +53,9 @@ C_SpotlightEnd::C_SpotlightEnd(void) : /*m_pModelLight(0), */m_pDynamicLight(0)
 //------------------------------------------------------------------------------
 void C_SpotlightEnd::OnDataChanged(DataUpdateType_t updateType)
 {
-	if ( updateType == DATA_UPDATE_CREATED )
+	if (updateType == DATA_UPDATE_CREATED)
 	{
-		SetNextClientThink(CLIENT_THINK_ALWAYS);
+		SetNextClientThink(gpGlobals->curtime + 0.05);
 	}
 }
 
@@ -78,17 +69,6 @@ bool C_SpotlightEnd::ShouldDraw()
 	return false;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: YWB:  This is a hack, BaseClass::Interpolate skips this entity because model == NULL
-//   We could do something like model = (model_t *)0x00000001, but that's probably more evil.
-// Input  : currentTime - 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-bool C_SpotlightEnd::ShouldInterpolate()
-{
-	return true;
-}
-
 //------------------------------------------------------------------------------
 // Purpose :
 // Input   :
@@ -97,39 +77,35 @@ bool C_SpotlightEnd::ShouldInterpolate()
 void C_SpotlightEnd::ClientThink(void)
 {
 	// If light scale is zero, don't draw light
-	if ( m_flLightScale <= 0 )
-		return;
-
-	ColorRGBExp32 color;
-	color.r	= m_clrRender->r * m_clrRender->a;
-	color.g	= m_clrRender->g * m_clrRender->a;
-	color.b	= m_clrRender->b * m_clrRender->a;
-	color.exponent = 0;
-	if ( color.r == 0 && color.g == 0 && color.b == 0 )
-		return;
-
-	// Deal with the environment light
-	if ( !m_pDynamicLight || (m_pDynamicLight->key != index) )
+	if (m_flLightScale <= 0)
 	{
-		m_pDynamicLight = effects->CL_AllocDlight( index );
-		assert (m_pDynamicLight);
+		return;
 	}
 
-	//m_pDynamicLight->flags = DLIGHT_NO_MODEL_ILLUMINATION;
-	m_pDynamicLight->radius		= m_flLightScale*3.0f;
-	m_pDynamicLight->origin		= GetAbsOrigin() + Vector(0,0,5);
-	m_pDynamicLight->die		= gpGlobals->curtime + 0.05f;
-	m_pDynamicLight->color		= color;
+	// Deal with the environment light
+	if (!m_pDynamicLight || (m_pDynamicLight->key != index))
+	{
+		m_pDynamicLight = effects->CL_AllocDlight(index);
+		Assert(m_pDynamicLight);
+	}
 
-	/*
+	m_pDynamicLight->flags = DLIGHT_NO_MODEL_ILLUMINATION;
+	m_pDynamicLight->radius = m_flLightScale;
+	m_pDynamicLight->origin = GetAbsOrigin() + Vector(0, 0, 5);
+	m_pDynamicLight->die = gpGlobals->curtime + 0.05;
+	m_pDynamicLight->color.r = m_clrRender->r * m_clrRender->a;
+	m_pDynamicLight->color.g = m_clrRender->g * m_clrRender->a;
+	m_pDynamicLight->color.b = m_clrRender->b * m_clrRender->a;
+	m_pDynamicLight->color.exponent = 5;
+
 	// For bumped lighting
-	VectorCopy (m_vSpotlightDir,  m_pDynamicLight->m_Direction);
+	VectorCopy(m_vSpotlightDir, m_pDynamicLight->m_Direction);
 
 	// Deal with the model light
- 	if ( !m_pModelLight || (m_pModelLight->key != -index) )
+	if (!m_pModelLight || (m_pModelLight->key != -index))
 	{
-		m_pModelLight = effects->CL_AllocDlight( -index );
-		assert (m_pModelLight);
+		m_pModelLight = effects->CL_AllocDlight(-index);
+		Assert(m_pModelLight);
 	}
 
 	m_pModelLight->radius = m_Radius;
@@ -137,20 +113,19 @@ void C_SpotlightEnd::ClientThink(void)
 	m_pModelLight->color.r = m_clrRender->r * m_clrRender->a;
 	m_pModelLight->color.g = m_clrRender->g * m_clrRender->a;
 	m_pModelLight->color.b = m_clrRender->b * m_clrRender->a;
-	m_pModelLight->color.exponent	= 1;
-	m_pModelLight->origin		= m_vSpotlightOrg;
+	m_pModelLight->color.exponent = 5;
+	m_pModelLight->origin = m_vSpotlightOrg;
 	m_pModelLight->m_InnerAngle = 6;
 	m_pModelLight->m_OuterAngle = 8;
 	m_pModelLight->die = gpGlobals->curtime + 0.05;
-	VectorCopy( m_vSpotlightDir, m_pModelLight->m_Direction );
-	*/
+	VectorCopy(m_vSpotlightDir, m_pModelLight->m_Direction);
 
-	SetNextClientThink( CLIENT_THINK_ALWAYS );
+	SetNextClientThink(gpGlobals->curtime + 0.05);
 }
 
 IMPLEMENT_CLIENTCLASS_DT(C_SpotlightEnd, DT_SpotlightEnd, CSpotlightEnd)
-	RecvPropFloat	(RECVINFO(m_flLightScale)),
-	RecvPropFloat	(RECVINFO(m_Radius)),
-//	RecvPropVector	(RECVINFO(m_vSpotlightOrg)),
-//	RecvPropVector	(RECVINFO(m_vSpotlightDir)),
+RecvPropFloat(RECVINFO(m_flLightScale)),
+RecvPropFloat(RECVINFO(m_Radius)),
+RecvPropVector(RECVINFO(m_vSpotlightOrg)),
+RecvPropVector(RECVINFO(m_vSpotlightDir)),
 END_RECV_TABLE()

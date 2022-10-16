@@ -5,6 +5,8 @@ using namespace vgui;
 #include <vgui/IVGui.h>
 #include <vgui_controls/Frame.h>
 #include <vgui_controls/Button.h>
+
+// Just in case we need this :)
 #include <vgui_controls/CheckButton.h>
 
 //CMyPanel class: Tutorial example class
@@ -24,7 +26,6 @@ protected:
 private:
 	//Other used VGUI control Elements:
 	Button* m_pCloseButton;
-	CheckButton* CheckButton_1;
 
 };
 
@@ -56,14 +57,8 @@ CMyPanel::CMyPanel(vgui::VPANEL parent)
 
 	DevMsg("MyPanel has been constructed\n");
 
-	CheckButton_1 = new CheckButton(this, "Checkbutton1", "Enables the old flashlight");
-	CheckButton_1->SetPos(26, 335);
-	CheckButton_1->SetSize(256, 24);
-
 	//Need to put it here AND NOT BEFORE THIS SECTION
-	// Credit: Milkwaym16 for providing reselection fix (Not documented on vdc wiki >:C)
-
-	//Make our self selceted after an restart
+	// Credit: Milkwaym16 for providing reselection (Not documented on vdc wiki >:C)
 
 	//Make our self selceted after an restart
 	ConVarRef sv_rollangle("sv_rollangle");
@@ -74,7 +69,13 @@ CMyPanel::CMyPanel(vgui::VPANEL parent)
 	ConVarRef sv_bhop_enabled("sv_bhop_enabled");
 	if (sv_bhop_enabled.IsValid())
 	{
-		SetControlInt("CheckButton4", sv_bhop_enabled.GetInt() ? 1 : 0); //Bhop
+		SetControlInt("CheckButton4", sv_bhop_enabled.GetInt() ? 1 : 0);
+	}
+
+	ConVarRef cl_oldvmbob("cl_oldvmbob");
+	if (cl_oldvmbob.IsValid())
+	{
+		SetControlInt("CheckButton5", cl_oldvmbob.GetInt() ? 1 : 0);
 	}
 }
 
@@ -113,7 +114,7 @@ public:
 			ConVarRef sv_zoomnosuit("sv_zoomnosuit");
 			if (sv_zoomnosuit.IsValid())
 			{
-				MyPanel->SetControlInt("Checkbutton3", r_oldflashlight.GetInt() ? 1 : 0);
+				MyPanel->SetControlInt("CheckButton3", r_oldflashlight.GetInt() ? 1 : 0);
 			}
 
 			MyPanel->Activate();
@@ -140,10 +141,10 @@ CON_COMMAND(OpenTestPanelFenix, "Toggles testpanelfenix on or off")
 void CMyPanel::OnApplyData()
 {
 	//Real magic happens here
-	ConVarRef r_oldflashlight("r_oldflashlight");
-	r_oldflashlight.SetValue(GetControlInt("CheckButton1", 0));
 
-	//Real magic happens here
+	ConVarRef r_oldflashlight("r_oldflashlight");
+	r_oldflashlight.SetValue(GetControlInt("Checkbutton1", 0));
+
 	ConVarRef sv_rollangle("sv_rollangle");
 	sv_rollangle.SetValue(GetControlInt("CheckButton2", 0));
 
@@ -153,7 +154,8 @@ void CMyPanel::OnApplyData()
 	ConVarRef sv_bhop_enabled("sv_bhop_enabled");
 	sv_bhop_enabled.SetValue(GetControlInt("CheckButton4", 0));
 
-
+	ConVarRef cl_oldvmbob("cl_oldvmbob");
+	cl_oldvmbob.SetValue(GetControlInt("CheckButton5", 0));
 }
 
 void CMyPanel::OnCommand(const char* pcCommand)

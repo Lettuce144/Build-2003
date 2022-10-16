@@ -14,6 +14,7 @@
 #include "IEffects.h"
 #include "engine/IEngineSound.h"
 #include "weapon_flaregun.h"
+#include "EntityDissolve.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -422,9 +423,25 @@ void CFlare::FlareTouch(CBaseEntity *pOther)
 
 		CBaseAnimating *pAnim;
 
-		pAnim = dynamic_cast<CBaseAnimating*>(pOther);
+		pAnim = dynamic_cast<CBaseAnimating*>(pOther); //pAnim is going to be attacked
+
 		if (pAnim)
 		{
+			// Re-enable me for the irifle if you want to use it like in retail with the secondary fire
+			// Aka vaporize ball
+			/*
+			float damage = 150;
+			CTakeDamageInfo	info(this, this, damage, DMG_DISSOLVE);
+
+			// Which way to do the damage
+			Vector vTargetDir = pAnim->BodyTarget(GetAbsOrigin(), false);
+			VectorNormalize(vTargetDir);
+			
+			//Do the damage
+			pAnim->TakeDamage(info);
+			info.SetDamageForce(vTargetDir * 120);
+			pAnim->Dissolve("", gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL);*/
+
 			pAnim->Ignite(30.0f);
 		}
 

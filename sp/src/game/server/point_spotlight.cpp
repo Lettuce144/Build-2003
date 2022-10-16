@@ -281,8 +281,8 @@ void CPointSpotlight::CreateEfficientSpotlight()
 	m_vSpotlightCurrentPos = SpotlightCurrentPos();
 	m_hSpotlightTarget->SetAbsOrigin( m_vSpotlightCurrentPos );
 	m_hSpotlightTarget->m_vSpotlightOrg = GetAbsOrigin();
-	VectorSubtract( m_hSpotlightTarget->GetAbsOrigin(), m_hSpotlightTarget->m_vSpotlightOrg, m_hSpotlightTarget->m_vSpotlightDir );
-	m_flSpotlightCurLength = VectorNormalize( m_hSpotlightTarget->m_vSpotlightDir );
+//	VectorSubtract( m_hSpotlightTarget->GetAbsOrigin(), m_hSpotlightTarget->m_vSpotlightOrg, m_hSpotlightTarget->m_vSpotlightDir );
+	//m_flSpotlightCurLength = VectorNormalize( m_hSpotlightTarget->m_vSpotlightDir );
 	m_hSpotlightTarget->SetMoveType( MOVETYPE_NONE );
 	ComputeRenderInfo();
 
@@ -525,9 +525,9 @@ void CPointSpotlight::SpotlightUpdate(void)
 	m_hSpotlightTarget->m_vSpotlightOrg = GetAbsOrigin();
 
 	// Avoid sudden change in where beam fades out when cross disconinuities
-	VectorSubtract( m_hSpotlightTarget->GetAbsOrigin(), m_hSpotlightTarget->m_vSpotlightOrg, m_hSpotlightTarget->m_vSpotlightDir );
-	float flBeamLength	= VectorNormalize( m_hSpotlightTarget->m_vSpotlightDir );
-	m_flSpotlightCurLength = (0.60*m_flSpotlightCurLength) + (0.4*flBeamLength);
+	//VectorSubtract( m_hSpotlightTarget->GetAbsOrigin(), m_hSpotlightTarget->m_vSpotlightOrg, m_hSpotlightTarget->m_vSpotlightDir );
+	float m_flBeamLength = VectorNormalize(m_hSpotlightTarget->m_vSpotlightDir.GetForModify());
+	m_flSpotlightCurLength = (0.60 * m_flSpotlightCurLength) + (0.4 * m_flBeamLength);
 
 	ComputeRenderInfo();
 
