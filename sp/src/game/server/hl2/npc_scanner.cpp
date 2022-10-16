@@ -1889,7 +1889,7 @@ void CNPC_CScanner::SpotlightUpdate(void)
 
 	// Avoid sudden change in where beam fades out when cross disconinuities
 	m_hSpotlightTarget->m_vSpotlightDir = m_hSpotlightTarget->GetLocalOrigin() - m_hSpotlightTarget->m_vSpotlightOrg;
-	float flBeamLength = VectorNormalize(m_hSpotlightTarget->m_vSpotlightDir.GetForModify());
+	float flBeamLength	= VectorNormalize( m_hSpotlightTarget->m_vSpotlightDir );
 	m_flSpotlightCurLength = (0.80*m_flSpotlightCurLength) + (0.2*flBeamLength);
 
 	// Fade out spotlight end if past max length.  
@@ -1915,7 +1915,7 @@ void CNPC_CScanner::SpotlightUpdate(void)
 	m_hSpotlight->SetWidth(flNewWidth);
 	m_hSpotlight->SetEndWidth(flNewWidth);
 
-	//m_hSpotlightTarget->m_flLightScale = 0.0;
+	m_hSpotlightTarget->m_flLightScale = 0.0;
 }
 
 //-----------------------------------------------------------------------------

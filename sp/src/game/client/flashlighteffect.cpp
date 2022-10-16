@@ -5,7 +5,6 @@
 //===========================================================================//
 
 #include "cbase.h"
-#include "c_baseplayer.h"
 #include "flashlighteffect.h"
 #include "dlight.h"
 #include "iefx.h"
@@ -25,8 +24,6 @@ extern ConVar r_flashlightdepthres;
 #else
 extern ConVar r_flashlightdepthres;
 #endif
-
-#define FLASHLIGHT_DISTANCE 1000.0f
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -84,7 +81,6 @@ CFlashlightEffect::CFlashlightEffect(int nEntIndex)
 
 	m_bIsOn = false;
 	m_pPointLight = NULL;
-	m_pModelLight = NULL;
 	if( engine->GetDXSupportLevel() < 70 )
 	{
 		r_oldflashlight.SetValue( 0 );
@@ -388,58 +384,31 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Do the old beta flashlight
+// Purpose: Do the headlight
 //-----------------------------------------------------------------------------
-void CFlashlightEffect::UpdateLightOld(const Vector &vecPos, int nDistance)
+void CFlashlightEffect::UpdateLightOld(const Vector &vecPos, const Vector &vecDir, int nDistance)
 {
-	C_BasePlayer* player = C_BasePlayer::GetLocalPlayer();
-
-	if (!m_pModelLight || (m_pModelLight->key != m_nEntIndex))
-	{
-		// Set up the model light
-		m_pModelLight = effects->CL_AllocDlight(m_nEntIndex);
-		m_pModelLight->flags = DLIGHT_NO_WORLD_ILLUMINATION;
-		m_pModelLight->radius = FLASHLIGHT_DISTANCE;
-		m_pModelLight->m_InnerAngle = 6;
-		m_pModelLight->m_OuterAngle = 10;
-		m_pModelLight->color.r = m_pModelLight->color.g =
-			m_pModelLight->color.b = 255;
-		m_pModelLight->color.exponent = 5;
-
-		// FEH: Need this here because the environment light's CL_AllocDLight
-		// will kill it right away if we don't
-		m_pModelLight->die = gpGlobals->curtime + 0.2f;
-	}
-
-	if ( !m_pPointLight || ( m_pPointLight->key != -m_nEntIndex ))
+	if ( !m_pPointLight || ( m_pPointLight->key != m_nEntIndex ))
 	{
 		// Set up the environment light
-		m_pPointLight = effects->CL_AllocDlight(-m_nEntIndex);
-		m_pPointLight->flags = DLIGHT_NO_MODEL_ILLUMINATION;
+		m_pPointLight = effects->CL_AllocDlight(m_nEntIndex);
+		m_pPointLight->flags = 0.0f;
 		m_pPointLight->radius = 80;
 	}
 	
-	VectorCopy(player->EyePosition(), m_pModelLight->origin);
-
-	Vector vecDir;
-	player->EyeVectors(&vecDir);
-	VectorCopy(vecDir, m_pPointLight->m_Direction);
-
-
 	// For bumped lighting
-	VectorCopy(vecDir, m_pModelLight->m_Direction);
-
+	VectorCopy(vecDir, m_pPointLight->m_Direction);
 	
 	Vector end;
-	end = m_pModelLight->origin + FLASHLIGHT_DISTANCE * vecDir;
+	end = vecPos + nDistance * vecDir;
 	
 	// Trace a line outward, skipping the player model and the view model.
 	trace_t pm;
-	//CTraceFilterSkipPlayerAndViewModel traceFilter;
-	UTIL_TraceLine(m_pModelLight->origin, end, MASK_NPCWORLDSTATIC, NULL, COLLISION_GROUP_NONE, &pm);
+	CTraceFilterSkipPlayerAndViewModel traceFilter;
+	UTIL_TraceLine( vecPos, end, MASK_ALL, &traceFilter, &pm );
 	VectorCopy( pm.endpos, m_pPointLight->origin );
 	
-	float falloff = pm.fraction * FLASHLIGHT_DISTANCE;
+	float falloff = pm.fraction * nDistance;
 	
 	if ( falloff < 500 )
 		falloff = 1.0;
@@ -449,11 +418,10 @@ void CFlashlightEffect::UpdateLightOld(const Vector &vecPos, int nDistance)
 	falloff *= falloff;
 	
 	m_pPointLight->radius = 80; //80
-	m_pPointLight->color.r = m_pPointLight->color.g = m_pPointLight->color.b = 255 * falloff;
+	m_pPointLight->color.r = m_pPointLight->color.g = m_pPointLight->color.b = 255;// * falloff;
 	m_pPointLight->color.exponent = 5;
 	
 	// Make it live for a bit
-	m_pModelLight->die = gpGlobals->curtime + 0.2f;
 	m_pPointLight->die = gpGlobals->curtime + 0.2f;
 	
 	// Update list of surfaces we influence
@@ -474,7 +442,7 @@ void CFlashlightEffect::UpdateLight(const Vector &vecPos, const Vector &vecDir, 
 	}
 	if(r_oldflashlight.GetBool() ) //Lettuce: was forced to turn the values :(
 	{
-		UpdateLightOld(vecPos, nDistance);
+		UpdateLightOld(vecPos, vecDir, nDistance);
 	}
 	else
 	{
@@ -514,13 +482,7 @@ void CFlashlightEffect::LightOffNew()
 //-----------------------------------------------------------------------------
 void CFlashlightEffect::LightOffOld()
 {	
-	// Clear out the light
-	if (m_pModelLight && (m_pModelLight->key == m_nEntIndex))
-	{
-		m_pModelLight->die = gpGlobals->curtime;
-		m_pModelLight = NULL;
-	}
-	if ( m_pPointLight && ( m_pPointLight->key == -m_nEntIndex ) )
+	if ( m_pPointLight && ( m_pPointLight->key == m_nEntIndex ) )
 	{
 		m_pPointLight->die = gpGlobals->curtime;
 		m_pPointLight = NULL;

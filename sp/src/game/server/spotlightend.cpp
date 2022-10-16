@@ -18,8 +18,8 @@ LINK_ENTITY_TO_CLASS(spotlight_end, CSpotlightEnd);
 IMPLEMENT_SERVERCLASS_ST(CSpotlightEnd, DT_SpotlightEnd)
 	SendPropFloat(SENDINFO(m_flLightScale), 0, SPROP_NOSCALE),
 	SendPropFloat(SENDINFO(m_Radius), 0, SPROP_NOSCALE),
-	SendPropVector(SENDINFO(m_vSpotlightDir), -1, SPROP_NORMAL),
-	SendPropVector(SENDINFO(m_vSpotlightOrg), -1, SPROP_COORD),
+//	SendPropVector(SENDINFO(m_vSpotlightDir), -1, SPROP_NORMAL),
+//	SendPropVector(SENDINFO(m_vSpotlightOrg), -1, SPROP_COORD),
 END_SEND_TABLE()
 
 

@@ -110,19 +110,10 @@ void CWeaponIRifle::PrimaryAttack( void )
 	if ( pFlare == NULL )
 		return;
 
+	Vector forward;
+	pOwner->EyeVectors( &forward );
 
-	Vector vecAiming = pOwner->GetAutoaimVector(0);
-	Vector vecSrc = pOwner->Weapon_ShootPosition();
-
-	QAngle angAiming;
-	VectorAngles(vecAiming, angAiming);
-
-
-	pFlare->SetAbsVelocity( vecAiming * 2500);
-
-	pFlare->SetGravity(0.15f);
-	pFlare->SetFriction(1);
-	pFlare->SetMoveType(MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE);
+	pFlare->SetAbsVelocity( forward * 1500 );
 
 	WeaponSound( SINGLE );
 }

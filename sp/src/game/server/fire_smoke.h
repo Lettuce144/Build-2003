@@ -1,4 +1,4 @@
-﻿//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -23,20 +23,20 @@ class CBaseFire : public CBaseEntity
 {
 public:
 	DECLARE_DATADESC();
-	DECLARE_CLASS(CBaseFire, CBaseEntity);
+	DECLARE_CLASS( CBaseFire, CBaseEntity );
 
-	CBaseFire(void);
-	virtual	~CBaseFire(void);
+	CBaseFire( void );
+	virtual	~CBaseFire( void );
 
-	virtual void	Scale(float size, float time);
-	virtual void	Scale(float start, float size, float time);
-	virtual void	Enable(int state = true);
+	virtual void	Scale( float size, float time );
+	virtual void	Scale( float start, float size, float time );
+	virtual void	Enable( int state = true );
 
 	//Client-side
-	CNetworkVar(float, m_flStartScale);
-	CNetworkVar(float, m_flScale);
-	CNetworkVar(float, m_flScaleTime);
-	CNetworkVar(int, m_nFlags);
+	CNetworkVar( float, m_flStartScale );
+	CNetworkVar( float, m_flScale );
+	CNetworkVar( float, m_flScaleTime );
+	CNetworkVar( int, m_nFlags );
 };
 
 //==================================================
@@ -52,25 +52,25 @@ public:
 class CFireSmoke : public CBaseFire
 {
 public:
-	DECLARE_CLASS(CFireSmoke, CBaseFire);
+	DECLARE_CLASS( CFireSmoke, CBaseFire );
 
-	CFireSmoke(void);
-	virtual	~CFireSmoke(void);
+	CFireSmoke( void );
+	virtual	~CFireSmoke( void );
 
 	void	Spawn();
 	void	Precache();
-	void	EnableSmoke(int state = true);
-	void	EnableGlow(int state = true);
-	void	EnableVisibleFromAbove(int state = true);
-
+	void	EnableSmoke( int state = true );
+	void	EnableGlow( int state = true );
+	void	EnableVisibleFromAbove( int state = true );
+	
 	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
 
 public:
 
 	//Client-side
-	CNetworkVar(int, m_nFlameModelIndex);
-	CNetworkVar(int, m_nFlameFromAboveModelIndex);
+	CNetworkVar( int, m_nFlameModelIndex );
+	CNetworkVar( int, m_nFlameFromAboveModelIndex );
 
 	//Server-side
 };

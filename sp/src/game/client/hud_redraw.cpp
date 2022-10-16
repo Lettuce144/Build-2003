@@ -164,66 +164,47 @@ void CHud::DrawProgressBar( int x, int y, int width, int height, float percentag
 //			clr - 
 //			type - 
 //-----------------------------------------------------------------------------
-void CHud::DrawIconProgressBar(int x, int y, int w, int h, CHudTexture* icon, float percentage, Color& clr, int type)
+void CHud::DrawIconProgressBar( int x, int y, CHudTexture *icon, CHudTexture *icon2, float percentage, Color& clr, int type )
 {
-	if (icon == NULL)
+	if ( icon == NULL )
 		return;
 
 	//Clamp our percentage
-	percentage = MIN(1.0f, percentage);
-	percentage = MAX(0.0f, percentage);
+	percentage = MIN( 1.0f, percentage );
+	percentage = MAX( 0.0f, percentage );
 
-	int	height = h;
-	int	width = w;
-
-	Color darkClr = clr;
-	darkClr[0] /= 4;
-	darkClr[1] /= 4;
-	darkClr[2] /= 4;
+	int	height = icon->Height();
+	int	width  = icon->Width();
 
 	//Draw a vertical progress bar
-	if (type == HUDPB_VERTICAL)
+	if ( type == HUDPB_VERTICAL )
 	{
 		int	barOfs = height * percentage;
 
-		icon->DrawSelfCropped(
+		icon2->DrawSelfCropped( 
 			x, y,  // Pos
 			0, 0, width, barOfs, // Cropped subrect
-			darkClr);
+			clr );
 
-		icon->DrawSelfCropped(
-			x, y + barOfs,
+		icon->DrawSelfCropped( 
+			x, y + barOfs, 
 			0, barOfs, width, height - barOfs, // Cropped subrect
-			clr);
+			clr );
 	}
-	else if (type == HUDPB_HORIZONTAL)
+	else if ( type == HUDPB_HORIZONTAL )
 	{
 		int	barOfs = width * percentage;
 
-		icon->DrawSelfCropped(
+		icon2->DrawSelfCropped( 
 			x, y,  // Pos
 			0, 0, barOfs, height, // Cropped subrect
-			darkClr);
+			clr );
 
-		icon->DrawSelfCropped(
-			x + barOfs, y,
+		icon->DrawSelfCropped( 
+			x + barOfs, y, 
 			barOfs, 0, width - barOfs, height, // Cropped subrect
-			clr);
-	}
-	else if (type == HUDPB_HORIZONTAL_INV)
-	{
-		int	barOfs = width - (width * percentage);
-
-		//empty portion
-		icon->DrawSelfCropped(
-			x + barOfs, y,
-			barOfs, 0, width - barOfs, height, // Cropped subrect
-			darkClr);
-
-		//full portion
-		icon->DrawSelfCropped(
-			x, y,
-			0, 0, barOfs, height, // Cropped subrect
-			clr);
+			clr );
 	}
 }
+
+

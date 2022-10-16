@@ -35,7 +35,7 @@ protected:
 	void LightOffNew();
 
 	void UpdateLightNew(const Vector &vecPos, const Vector &vecDir, const Vector &vecRight, const Vector &vecUp);
-	void UpdateLightOld(const Vector& vecPos, int nDistance);
+	void UpdateLightOld(const Vector &vecPos, const Vector &vecDir, int nDistance);
 
 	bool m_bIsOn;
 	int m_nEntIndex;
