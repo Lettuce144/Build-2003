@@ -262,6 +262,9 @@ void C_Flare::Update( float timeDelta )
 
 			dl->radius	= baseScale * random->RandomFloat( 110.0f, 128.0f );
 			dl->color.g = dl->color.b = random->RandomInt( 32, 64 );
+
+			//Beta style Dlight
+			dl->color.exponent = 5;
 		}
 		else
 		{

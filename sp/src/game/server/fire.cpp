@@ -798,7 +798,7 @@ void CFire::SpawnEffect( fireType_e type, float scale )
 			CFireSmoke	*fireSmoke = (CFireSmoke *) CreateEntityByName( "_firesmoke" );
 			fireSmoke->EnableSmoke( ( m_spawnflags & SF_FIRE_SMOKELESS )==false );
 			fireSmoke->EnableGlow( ( m_spawnflags & SF_FIRE_NO_GLOW )==false );
-			fireSmoke->EnableVisibleFromAbove( ( m_spawnflags & SF_FIRE_VISIBLE_FROM_ABOVE )!=false );
+			fireSmoke->EnableVisibleFromAbove((m_spawnflags & SF_FIRE_VISIBLE_FROM_ABOVE) != false);
 			
 			pEffect			= fireSmoke;
 			m_nFireType		= FIRE_NATURAL;

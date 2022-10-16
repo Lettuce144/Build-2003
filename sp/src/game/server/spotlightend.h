@@ -36,10 +36,8 @@ public:
 public:
 	CNetworkVar( float, m_flLightScale );
 	CNetworkVar( float, m_Radius );
-//	CNetworkVector( m_vSpotlightDir );
-//	CNetworkVector( m_vSpotlightOrg );
-	Vector			m_vSpotlightDir;
-	Vector			m_vSpotlightOrg;
+	CNetworkVector( m_vSpotlightDir );
+	CNetworkVector( m_vSpotlightOrg );
 };
 
 #endif	//SPOTLIGHTEND_H
