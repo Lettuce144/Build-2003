@@ -423,11 +423,8 @@ public:
 	float					GetBobScale() const;
 	float					GetSwayScale() const;
 	float					GetSwaySpeedScale() const;
-<<<<<<< Updated upstream
 	virtual const char		*GetDroppedModel( void ) const;
 	bool					UsesHands( void ) const;
-=======
->>>>>>> Stashed changes
 #endif
 
 	// derive this function if you mod uses encrypted weapon info files

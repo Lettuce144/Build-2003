@@ -1985,7 +1985,6 @@ void CResponseSystem::ParseResponse( void )
 
 	while ( 1 )
 	{
-<<<<<<< Updated upstream
 #ifdef MAPBASE
 		if ( !ParseToken() || !Q_stricmp( token, "}" ) )
 		{
@@ -1994,9 +1993,6 @@ void CResponseSystem::ParseResponse( void )
 #else
 		ParseToken();
 #endif
-=======
-		ParseToken();
->>>>>>> Stashed changes
 
 		unsigned int hash = RR_HASH( token );
 
@@ -2059,7 +2055,6 @@ int CResponseSystem::ParseOneCriterion( const char *criterionName )
 
 	while ( TokenWaiting() || !gotbody )
 	{
-<<<<<<< Updated upstream
 #ifdef MAPBASE
 		if ( !ParseToken() )
 		{
@@ -2068,9 +2063,6 @@ int CResponseSystem::ParseOneCriterion( const char *criterionName )
 #else
 		ParseToken();
 #endif
-=======
-		ParseToken();
->>>>>>> Stashed changes
 
 		// Oops, part of next definition
 		if( IsRootCommand() )

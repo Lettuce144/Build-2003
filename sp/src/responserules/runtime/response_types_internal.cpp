@@ -8,10 +8,7 @@
 #include "rrbase.h"
 #ifdef MAPBASE
 #include "convar.h"
-<<<<<<< Updated upstream
 #include "mapbase_matchers_base.h"
-=======
->>>>>>> Stashed changes
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -121,15 +118,11 @@ static inline bool CanBucketBySubject( const char * RESTRICT pszSubject )
 {
 	return  pszSubject && 
 		( ( pszSubject[0] >= 'A' && pszSubject[0] <= 'Z' ) ||
-<<<<<<< Updated upstream
 		  ( pszSubject[0] >= 'a' && pszSubject[0] <= 'z' ) )
 #ifdef MAPBASE
 		&& !Matcher_ContainsWildcard( pszSubject )
 #endif
 		;
-=======
-		  ( pszSubject[0] >= 'a' && pszSubject[0] <= 'z' ) );
->>>>>>> Stashed changes
 }
 
 ResponseRulePartition::tRuleDict &ResponseRulePartition::GetDictForRule( CResponseSystem *pSystem, Rule *pRule )

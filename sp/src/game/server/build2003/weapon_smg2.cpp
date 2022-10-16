@@ -19,17 +19,12 @@
 class CWeaponSMG2 : public CHLSelectFireMachineGun
 {
 public:
-<<<<<<< HEAD
 	DECLARE_CLASS(CWeaponSMG2, CHLSelectFireMachineGun);
-=======
-	DECLARE_CLASS( CWeaponSMG2, CHLSelectFireMachineGun );
->>>>>>> develop
 
 	CWeaponSMG2();
 
 	DECLARE_SERVERCLASS();
 
-<<<<<<< HEAD
 	const Vector& GetBulletSpread(void);
 
 	void Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
@@ -42,17 +37,6 @@ public:
 
 	float			GetFireRate(void) { return 0.1f; }
 	int				CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
-=======
-	const Vector	&GetBulletSpread( void );
-
-	void			Precache( void );
-	bool			Reload( void );
-	void			AddViewKick( void );
-	void			Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
-
-	float			GetFireRate( void ) { return 0.1f; }
-	int				CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
->>>>>>> develop
 
 	DECLARE_ACTTABLE();
 };
@@ -60,7 +44,6 @@ public:
 IMPLEMENT_SERVERCLASS_ST(CWeaponSMG2, DT_WeaponSMG2)
 END_SEND_TABLE()
 
-<<<<<<< HEAD
 LINK_ENTITY_TO_CLASS(weapon_smg2, CWeaponSMG2);
 PRECACHE_WEAPON_REGISTER(weapon_smg2);
 
@@ -186,21 +169,11 @@ acttable_t	CWeaponSMG2::m_acttable[] =
 		{ ACT_HL2MP_GESTURE_RANGE_ATTACK2,	ACT_HL2MP_GESTURE_RANGE_ATTACK2_SMG2,    false },
 	#endif
 	#endif
-=======
-LINK_ENTITY_TO_CLASS( weapon_smg2, CWeaponSMG2 );
-PRECACHE_WEAPON_REGISTER(weapon_smg2);
-
-acttable_t	CWeaponSMG2::m_acttable[] = 
-{
-	{ ACT_RANGE_ATTACK1, ACT_RANGE_ATTACK_SMG2, true },
-	{ ACT_RELOAD, ACT_SMG2_RELOAD2, true },
->>>>>>> develop
 };
 
 IMPLEMENT_ACTTABLE(CWeaponSMG2);
 
 //=========================================================
-<<<<<<< HEAD
 CWeaponSMG2::CWeaponSMG2()
 {
 	m_fMaxRange1 = 2000;
@@ -216,17 +189,6 @@ CWeaponSMG2::CWeaponSMG2()
 }
 
 void CWeaponSMG2::Precache(void)
-=======
-CWeaponSMG2::CWeaponSMG2( )
-{
-	m_fMaxRange1		= 2000;
-	m_fMinRange1		= 32;
-
-	m_iFireMode			= FIREMODE_FULLAUTO;
-}
-
-void CWeaponSMG2::Precache( void )
->>>>>>> develop
 {
 	BaseClass::Precache();
 }
@@ -235,17 +197,12 @@ void CWeaponSMG2::Precache( void )
 // Purpose: 
 // Output : const Vector
 //-----------------------------------------------------------------------------
-<<<<<<< HEAD
 const Vector& CWeaponSMG2::GetBulletSpread(void)
-=======
-const Vector &CWeaponSMG2::GetBulletSpread( void )
->>>>>>> develop
 {
 	static const Vector cone = VECTOR_CONE_10DEGREES;
 	return cone;
 }
 
-<<<<<<< HEAD
 void CWeaponSMG2::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
 {
 	switch (pEvent->event)
@@ -288,37 +245,6 @@ void CWeaponSMG2::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatChara
 }
 
 
-=======
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *pEvent - 
-//			*pOperator - 
-//-----------------------------------------------------------------------------
-void CWeaponSMG2::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator )
-{
-	switch( pEvent->event )
-	{
-		case EVENT_WEAPON_SMG2:
-		{
-			Vector vecShootOrigin, vecShootDir;
-			vecShootOrigin = pOperator->Weapon_ShootPosition( );
-
-			CAI_BaseNPC *npc = pOperator->MyNPCPointer();
-			ASSERT( npc != NULL );
-			vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
-
-			WeaponSound(SINGLE_NPC);
-			pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2 );
-			pOperator->DoMuzzleFlash();
-			m_iClip1 = m_iClip1 - 1;
-		}
-		break;
-		default:
-			BaseClass::Operator_HandleAnimEvent( pEvent, pOperator );
-			break;
-	}
-}
->>>>>>> develop
 // Reload sounds
 bool CWeaponSMG2::Reload(void)
 {
@@ -342,7 +268,6 @@ bool CWeaponSMG2::Reload(void)
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-<<<<<<< HEAD
 void CWeaponSMG2::AddViewKick(void)
 {
 #define	EASY_DAMPEN			0.5f
@@ -351,24 +276,9 @@ void CWeaponSMG2::AddViewKick(void)
 
 	//Get the view kick
 	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
-=======
-void CWeaponSMG2::AddViewKick( void )
-{
-	#define	EASY_DAMPEN			0.5f
-	#define	MAX_VERTICAL_KICK	2.0f	//Degrees
-	#define	SLIDE_LIMIT			1.0f	//Seconds
-	
-	//Get the view kick
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
->>>>>>> develop
 
 	if (!pPlayer)
 		return;
 
-<<<<<<< HEAD
 	DoMachineGunKick(pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT);
 }
-=======
-	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT );
-}
->>>>>>> develop

@@ -290,7 +290,6 @@ void CBaseViewModel::AddEffects( int nEffects )
 	}
 
 #ifdef MAPBASE
-<<<<<<< Updated upstream
 	if (GetOwningWeapon() && GetOwningWeapon()->UsesHands())
 	{
 		// If using hands, apply effect changes to any viewmodel children as well
@@ -300,14 +299,6 @@ void CBaseViewModel::AddEffects( int nEffects )
 			if (pChild->GetClassname()[0] == 'h')
 				pChild->AddEffects( nEffects );
 		}
-=======
-	// Apply effect changes to any viewmodel children as well
-	// (fixes hand models)
-	for (CBaseEntity *pChild = FirstMoveChild(); pChild != NULL; pChild = pChild->NextMovePeer())
-	{
-		if (pChild->GetClassname()[0] == 'h')
-			pChild->AddEffects( nEffects );
->>>>>>> Stashed changes
 	}
 #endif
 
@@ -325,7 +316,6 @@ void CBaseViewModel::RemoveEffects( int nEffects )
 	}
 
 #ifdef MAPBASE
-<<<<<<< Updated upstream
 	if (GetOwningWeapon() && GetOwningWeapon()->UsesHands())
 	{
 		// If using hands, apply effect changes to any viewmodel children as well
@@ -335,14 +325,6 @@ void CBaseViewModel::RemoveEffects( int nEffects )
 			if (pChild->GetClassname()[0] == 'h')
 				pChild->RemoveEffects( nEffects );
 		}
-=======
-	// Apply effect changes to any viewmodel children as well
-	// (fixes hand models)
-	for (CBaseEntity *pChild = FirstMoveChild(); pChild != NULL; pChild = pChild->NextMovePeer())
-	{
-		if (pChild->GetClassname()[0] == 'h')
-			pChild->RemoveEffects( nEffects );
->>>>>>> Stashed changes
 	}
 #endif
 

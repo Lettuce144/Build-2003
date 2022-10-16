@@ -16,10 +16,7 @@
 #include "minmax.h"
 
 ConVar mapbase_wildcards_enabled("mapbase_wildcards_enabled", "1", FCVAR_NONE, "Toggles Mapbase's '?' wildcard and true '*' features. Useful for maps that have '?' in their targetnames.");
-<<<<<<< Updated upstream
 ConVar mapbase_wildcards_lazy_hack("mapbase_wildcards_lazy_hack", "1", FCVAR_NONE, "Toggles a hack which prevents Mapbase's lazy '?' wildcards from picking up \"???\", the default instance parameter.");
-=======
->>>>>>> Stashed changes
 ConVar mapbase_regex_enabled("mapbase_regex_enabled", "1", FCVAR_NONE, "Toggles Mapbase's regex matching handover.");
 
 //=============================================================================
@@ -125,7 +122,6 @@ bool Matcher_NamesMatch(const char *pszQuery, const char *szValue)
 			return Matcher_Regex( pszQuery+2, szValue );
 		}
 	}
-<<<<<<< Updated upstream
 	else if (pszQuery[0] == '?' && pszQuery[1] == '?' && pszQuery[2] == '?' && mapbase_wildcards_lazy_hack.GetBool())
 	{
 		// HACKHACK: There's a nasty issue where instances with blank parameters use "???", but Mapbase's lazy wildcard code
@@ -134,8 +130,6 @@ bool Matcher_NamesMatch(const char *pszQuery, const char *szValue)
 		// a non-filter entity.
 		return false;
 	}
-=======
->>>>>>> Stashed changes
 
 	return Matcher_RunCharCompare( pszQuery, szValue );
 }
@@ -215,7 +209,6 @@ bool Matcher_NamesMatch_MutualWildcard(const char *pszQuery, const char *szValue
 	return false;
 }
 
-<<<<<<< Updated upstream
 // Returns true if a string contains a wildcard.
 bool Matcher_ContainsWildcard(const char *pszQuery)
 {
@@ -233,8 +226,6 @@ bool Matcher_ContainsWildcard(const char *pszQuery)
 	return false;
 }
 
-=======
->>>>>>> Stashed changes
 // Matcher_Compare is a deprecated alias originally used when Matcher_Match didn't support wildcards.
 /*
 bool Matcher_Compare(const char *pszQuery, const char *szValue)

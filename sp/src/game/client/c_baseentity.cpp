@@ -1353,11 +1353,7 @@ void C_BaseEntity::Term()
 	if ( m_hScriptInstance )
 	{
 #ifdef MAPBASE_VSCRIPT
-<<<<<<< Updated upstream
 		if ( m_ScriptScope.IsInitialized() && g_Hook_UpdateOnRemove.CanRunInScope( m_ScriptScope ) )
-=======
-		if ( m_ScriptScope.IsInitialized() )
->>>>>>> Stashed changes
 		{
 			g_Hook_UpdateOnRemove.Call( m_ScriptScope, NULL, NULL );
 		}

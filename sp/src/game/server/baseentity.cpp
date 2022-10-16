@@ -8927,7 +8927,6 @@ void CBaseEntity::AddContext( const char *name, const char *value, float duratio
 	{
 		ResponseContext_t newContext;
 		newContext.m_iszName = AllocPooledString( name );
-<<<<<<< Updated upstream
 
 #ifdef NEW_RESPONSE_SYSTEM
 		char buf[64];
@@ -8944,24 +8943,6 @@ void CBaseEntity::AddContext( const char *name, const char *value, float duratio
 		newContext.m_iszValue = AllocPooledString( value );
 #endif
 
-=======
-
-#ifdef NEW_RESPONSE_SYSTEM
-		char buf[64];
-		if ( RR::CApplyContextOperator::FindOperator( value )->Apply( 
-			NULL, value, buf, sizeof(buf) ) )
-		{
-			newContext.m_iszValue = AllocPooledString( buf );
-		}
-		else
-		{
-			newContext.m_iszValue = AllocPooledString( value );
-		}
-#else
-		newContext.m_iszValue = AllocPooledString( value );
-#endif
-
->>>>>>> Stashed changes
 		newContext.m_fExpirationTime = duration;
 
 		m_ResponseContexts.AddToTail( newContext );

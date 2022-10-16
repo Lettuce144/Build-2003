@@ -474,11 +474,7 @@ void CFlashlightEffect::UpdateLight(const Vector &vecPos, const Vector &vecDir, 
 	}
 	if(r_oldflashlight.GetBool() ) //Lettuce: was forced to turn the values :(
 	{
-<<<<<<< Updated upstream
 		UpdateLightOld(vecPos, nDistance);
-=======
-		UpdateLightOld(vecPos, vecDir, nDistance);
->>>>>>> Stashed changes
 	}
 	else
 	{

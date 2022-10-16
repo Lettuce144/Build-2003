@@ -188,14 +188,8 @@ public:
 	//--------------------------------------------------------
 	// Hooks
 	//--------------------------------------------------------
-<<<<<<< Updated upstream
 	virtual HScriptRaw HScriptToRaw( HSCRIPT val ) override;
 	virtual ScriptStatus_t ExecuteHookFunction( const char *pszEventName, ScriptVariant_t *pArgs, int nArgs, ScriptVariant_t *pReturn, HSCRIPT hScope, bool bWait ) override;
-=======
-	virtual bool ScopeIsHooked( HSCRIPT hScope, const char *pszEventName ) override;
-	virtual HSCRIPT LookupHookFunction( const char *pszEventName, HSCRIPT hScope, bool &bLegacy ) override;
-	virtual ScriptStatus_t ExecuteHookFunction( const char *pszEventName, HSCRIPT hFunction, ScriptVariant_t *pArgs, int nArgs, ScriptVariant_t *pReturn, HSCRIPT hScope, bool bWait ) override;
->>>>>>> Stashed changes
 
 	//--------------------------------------------------------
 	// External functions
@@ -511,23 +505,7 @@ namespace SQVector
 		sq_getinstanceup(vm, -1, &p, 0);
 		new(p) Vector(-v1->x, -v1->y, -v1->z);
 		sq_remove(vm, -2);
-<<<<<<< Updated upstream
-=======
 
-		return 1;
-	}
-
-	SQInteger weakref(HSQUIRRELVM vm)
-	{
-		sq_weakref(vm, 1);
-		return 1;
-	}
->>>>>>> Stashed changes
-
-	SQInteger getclass(HSQUIRRELVM vm)
-	{
-		sq_getclass(vm, 1);
-		sq_push(vm, -1);
 		return 1;
 	}
 
@@ -2369,7 +2347,6 @@ ScriptStatus_t SquirrelVM::ExecuteFunction(HSCRIPT hFunction, ScriptVariant_t* p
 	return SCRIPT_DONE;
 }
 
-<<<<<<< Updated upstream
 HScriptRaw SquirrelVM::HScriptToRaw( HSCRIPT val )
 {
 	Assert( val );
@@ -2396,95 +2373,11 @@ ScriptStatus_t SquirrelVM::ExecuteHookFunction(const char *pszEventName, ScriptV
 
 	sq_pushstring(vm_, pszEventName, -1);
 
-=======
-bool SquirrelVM::ScopeIsHooked( HSCRIPT hScope, const char *pszEventName )
-{
-	// For now, assume null scope (which is used for global hooks) is always hooked
-	if (!hScope)
-		return true;
-
-	Assert(hScope != INVALID_HSCRIPT);
-
-	sq_pushroottable(vm_);
-	sq_pushstring(vm_, "Hooks", -1);
-	sq_get(vm_, -2);
-	sq_pushstring(vm_, "ScopeHookedToEvent", -1);
-	sq_get(vm_, -2);
-	sq_push(vm_, -2);
-	sq_pushobject(vm_, *((HSQOBJECT*)hScope));
-	sq_pushstring(vm_, pszEventName, -1);
-	sq_call(vm_, 3, SQTrue, SQTrue);
-
-	SQBool val;
-	if (SQ_FAILED(sq_getbool(vm_, -1, &val)))
-	{
-		sq_pop(vm_, 3);
-		return false;
-	}
-
-	sq_pop(vm_, 3);
-	return val ? true : false;
-}
-
-HSCRIPT SquirrelVM::LookupHookFunction(const char *pszEventName, HSCRIPT hScope, bool &bLegacy)
-{
-	HSCRIPT hFunc = hScope ? LookupFunction( pszEventName, hScope ) : nullptr;
-	if (hFunc)
-	{
-		bLegacy = true;
-		return hFunc;
-	}
-	else
-	{
-		bLegacy = false;
-	}
-
-	if (!ScopeIsHooked(hScope, pszEventName))
-		return nullptr;
-
-	sq_pushroottable(vm_);
-	sq_pushstring(vm_, "Hooks", -1);
-	sq_get(vm_, -2);
-	sq_pushstring(vm_, "Call", -1);
-	sq_get(vm_, -2);
-
-	HSQOBJECT obj;
-	sq_resetobject(&obj);
-	sq_getstackobj(vm_, -1, &obj);
-	sq_addref(vm_, &obj);
-	sq_pop(vm_, 2);
-
-	HSQOBJECT* pObj = new HSQOBJECT;
-	*pObj = obj;
-	return (HSCRIPT)pObj;
-}
-
-ScriptStatus_t SquirrelVM::ExecuteHookFunction(const char *pszEventName, HSCRIPT hFunction, ScriptVariant_t* pArgs, int nArgs, ScriptVariant_t* pReturn, HSCRIPT hScope, bool bWait)
-{
-	SquirrelSafeCheck safeCheck(vm_);
-	if (!hFunction)
-		return SCRIPT_ERROR;
-
-	if (hFunction == INVALID_HSCRIPT)
-		return SCRIPT_ERROR;
-
-	HSQOBJECT* pFunc = (HSQOBJECT*)hFunction;
-	sq_pushobject(vm_, *pFunc);
-
-	// TODO: Run in hook scope
-	sq_pushroottable(vm_);
-
->>>>>>> Stashed changes
 	if (hScope)
 		sq_pushobject(vm_, *((HSQOBJECT*)hScope));
 	else
 		sq_pushnull(vm_); // global hook
 
-<<<<<<< Updated upstream
-=======
-	sq_pushstring(vm_, pszEventName, -1);
-
->>>>>>> Stashed changes
 	for (int i = 0; i < nArgs; ++i)
 	{
 		PushVariant(vm_, pArgs[i]);

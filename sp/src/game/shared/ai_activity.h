@@ -45,10 +45,7 @@
 // This enables a bunch of new activities for unused Half-Life 2 weapons, particularly those which exist in the SDK, but are deactivated by default.
 // This essentially just means mods which restore those weapons have the option of using custom activities for them.
 // Mapbase's backup activity system would allow them to fall back to other weapons if the relevant activities do not exist.
-<<<<<<< Updated upstream
 // Also includes activity names for the "AR3" and "SMG3", which were never used in HL2, but may be useful when additional animation sets are needed.
-=======
->>>>>>> Stashed changes
 #define EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES 0
 
 // EXPANDED NAVIGATION ACTIVITIES
@@ -2347,7 +2344,6 @@ typedef enum
 	ACT_WALK_AIM_AR1_STIMULATED,
 	ACT_RUN_AIM_AR1_STIMULATED,
 
-<<<<<<< Updated upstream
 	// AR3 (new)
 	ACT_IDLE_AR3,
 	ACT_IDLE_ANGRY_AR3,
@@ -2375,8 +2371,6 @@ typedef enum
 	ACT_WALK_AIM_AR3_STIMULATED,
 	ACT_RUN_AIM_AR3_STIMULATED,
 
-=======
->>>>>>> Stashed changes
 	// SMG2
 	ACT_IDLE_SMG2,
 	ACT_IDLE_ANGRY_SMG2,
@@ -2404,7 +2398,6 @@ typedef enum
 	ACT_WALK_AIM_SMG2_STIMULATED,
 	ACT_RUN_AIM_SMG2_STIMULATED,
 
-<<<<<<< Updated upstream
 	// SMG3 (new)
 	ACT_IDLE_SMG3,
 	ACT_IDLE_ANGRY_SMG3,
@@ -2459,8 +2452,6 @@ typedef enum
 	ACT_WALK_AIM_HMG1_STIMULATED,
 	ACT_RUN_AIM_HMG1_STIMULATED,
 
-=======
->>>>>>> Stashed changes
 	// Sniper Rifle
 	ACT_IDLE_SNIPER_RIFLE,
 	ACT_IDLE_ANGRY_SNIPER_RIFLE,
@@ -2524,7 +2515,6 @@ typedef enum
 	// MED activities for unused weapons
 	ACT_RANGE_AIM_AR1_MED,
 	ACT_RANGE_ATTACK_AR1_MED,
-<<<<<<< Updated upstream
 	ACT_RANGE_AIM_AR3_MED,
 	ACT_RANGE_ATTACK_AR3_MED,
 	ACT_RANGE_AIM_SMG2_MED,
@@ -2533,10 +2523,6 @@ typedef enum
 	ACT_RANGE_ATTACK_SMG3_MED,
 	ACT_RANGE_AIM_HMG1_MED,
 	ACT_RANGE_ATTACK_HMG1_MED,
-=======
-	ACT_RANGE_AIM_SMG2_MED,
-	ACT_RANGE_ATTACK_SMG2_MED,
->>>>>>> Stashed changes
 	ACT_RANGE_AIM_SNIPER_RIFLE_MED,
 	ACT_RANGE_ATTACK_SNIPER_RIFLE_MED,
 #endif
@@ -2605,7 +2591,6 @@ typedef enum
 	ACT_HL2MP_GESTURE_RELOAD_AR1,
 	ACT_HL2MP_JUMP_AR1,
 
-<<<<<<< Updated upstream
 	ACT_HL2MP_IDLE_AR3,
 	ACT_HL2MP_RUN_AR3,
 	ACT_HL2MP_WALK_AR3,
@@ -2616,8 +2601,6 @@ typedef enum
 	ACT_HL2MP_GESTURE_RELOAD_AR3,
 	ACT_HL2MP_JUMP_AR3,
 
-=======
->>>>>>> Stashed changes
 	ACT_HL2MP_IDLE_SMG2,
 	ACT_HL2MP_RUN_SMG2,
 	ACT_HL2MP_WALK_SMG2,
@@ -2628,7 +2611,6 @@ typedef enum
 	ACT_HL2MP_GESTURE_RELOAD_SMG2,
 	ACT_HL2MP_JUMP_SMG2,
 
-<<<<<<< Updated upstream
 	ACT_HL2MP_IDLE_SMG3,
 	ACT_HL2MP_RUN_SMG3,
 	ACT_HL2MP_WALK_SMG3,
@@ -2649,8 +2631,6 @@ typedef enum
 	ACT_HL2MP_GESTURE_RELOAD_HMG1,
 	ACT_HL2MP_JUMP_HMG1,
 
-=======
->>>>>>> Stashed changes
 	ACT_HL2MP_IDLE_SNIPER_RIFLE,
 	ACT_HL2MP_RUN_SNIPER_RIFLE,
 	ACT_HL2MP_WALK_SNIPER_RIFLE,

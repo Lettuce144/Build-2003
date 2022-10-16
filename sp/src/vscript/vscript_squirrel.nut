@@ -152,7 +152,6 @@ Hooks <-
 	// table, string, closure, string
 	function Add( scope, event, callback, context )
 	{
-<<<<<<< Updated upstream
 		switch ( typeof scope )
 		{
 			case "table":
@@ -295,121 +294,6 @@ Hooks <-
 	function __UpdateHooks()
 	{
 		return __UpdateScriptHooks( s_List );
-=======
-		if ( typeof callback != "function" )
-			throw "invalid callback param"
-
-		if ( !(scope in s_List) )
-			s_List[scope] <- {}
-
-		local t = s_List[scope]
-
-		if ( !(event in t) )
-			t[event] <- {}
-
-		t[event][context] <- callback
-	}
-
-	function Remove( context, event = null )
-	{
-		if ( event )
-		{
-			foreach( k,scope in s_List )
-			{
-				if ( event in scope )
-				{
-					local t = scope[event]
-					if ( context in t )
-					{
-						delete t[context]
-					}
-
-					// cleanup?
-					if ( !t.len() )
-						delete scope[event]
-				}
-
-				// cleanup?
-				if ( !scope.len() )
-					delete s_List[k]
-			}
-		}
-		else
-		{
-			foreach( k,scope in s_List )
-			{
-				foreach( kk,ev in scope )
-				{
-					if ( context in ev )
-					{
-						delete ev[context]
-					}
-
-					// cleanup?
-					if ( !ev.len() )
-						delete scope[kk]
-				}
-
-				// cleanup?
-				if ( !scope.len() )
-					delete s_List[k]
-			}
-		}
-	}
-
-	function Call( scope, event, ... )
-	{
-		local firstReturn = null
-
-		if ( scope == null )
-		{
-			// null scope = global hook; call all scopes
-			vargv.insert(0,this)
-			foreach ( t in s_List )
-			{
-				if ( event in t )
-				{
-					foreach( context, callback in t[event] )
-					{
-						//printf( "(%.4f) Calling hook '%s' of context '%s' in static iteration\n", Time(), event, context )
-
-						local curReturn = callback.acall(vargv)
-						if (firstReturn == null)
-							firstReturn = curReturn
-					}
-				}
-			}
-		}
-		else if ( scope in s_List )
-		{
-			local t = s_List[scope]
-			if ( event in t )
-			{
-				vargv.insert(0,scope)
-				foreach( context, callback in t[event] )
-				{
-					//printf( "(%.4f) Calling hook '%s' of context '%s'\n", Time(), event, context )
-
-					local curReturn = callback.acall(vargv)
-					if (firstReturn == null)
-						firstReturn = curReturn
-				}
-			}
-		}
-
-		return firstReturn
-	}
-
-	function ScopeHookedToEvent( scope, event )
-	{
-		if ( scope in s_List )
-		{
-			if (event in s_List[scope])
-				return true
-		}
-
-		return false
->>>>>>> Stashed changes
 	}
 }
 
@@ -516,7 +400,6 @@ if (developer)
 		local text = "Function:    " + name + "\n"
 
 		if (doc[0] == null)
-<<<<<<< Updated upstream
 		{
 			// Is an aliased function
 			text += ("Signature:   function " + name + "(");
@@ -532,23 +415,6 @@ if (developer)
 		{
 			text += ("Signature:   " + doc[0] + "\n");
 		}
-=======
-		{
-			// Is an aliased function
-			text += ("Signature:   function " + name + "(");
-			foreach(k,v in this[name].getinfos().parameters)
-			{
-				if (k == 0 && v == "this") continue;
-				if (k > 1) text += (", ");
-				text += (v);
-			}
-			text += (")\n");
-		}
-		else
-		{
-			text += ("Signature:   " + doc[0] + "\n");
-		}
->>>>>>> Stashed changes
 		if (doc[1].len())
 			text += ("Description: " + doc[1] + "\n");
 		printdocl(text);
@@ -619,7 +485,6 @@ if (developer)
 	{
 		local matches = [];
 		local always = pattern == "*";
-<<<<<<< Updated upstream
 
 		foreach( name, doc in docs )
 		{
@@ -637,25 +502,6 @@ if (developer)
 		foreach( name in matches )
 			printfunc( name, docs[name] );
 
-=======
-
-		foreach( name, doc in docs )
-		{
-			if (always || name.tolower().find(pattern) != null || (doc[1].len() && doc[1].tolower().find(pattern) != null))
-			{
-				matches.append( name );
-			}
-		}
-
-		if ( !matches.len() )
-			return 0;
-
-		matches.sort();
-
-		foreach( name in matches )
-			printfunc( name, docs[name] );
-
->>>>>>> Stashed changes
 		return 1;
 	}
 

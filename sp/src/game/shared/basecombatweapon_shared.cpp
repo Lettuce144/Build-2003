@@ -497,7 +497,6 @@ float CBaseCombatWeapon::GetSwaySpeedScale() const
 {
 	return GetWpnData().m_flSwaySpeedScale;
 }
-<<<<<<< Updated upstream
 
 const char *CBaseCombatWeapon::GetDroppedModel() const
 {
@@ -508,8 +507,6 @@ bool CBaseCombatWeapon::UsesHands() const
 {
 	return GetWpnData().m_bUsesHands;
 }
-=======
->>>>>>> Stashed changes
 #endif
 
 //-----------------------------------------------------------------------------

@@ -14,10 +14,7 @@
 #include "IEffects.h"
 #include "engine/IEngineSound.h"
 #include "weapon_flaregun.h"
-<<<<<<< Updated upstream
 #include "EntityDissolve.h"
-=======
->>>>>>> Stashed changes
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -426,7 +423,6 @@ void CFlare::FlareTouch(CBaseEntity *pOther)
 
 		CBaseAnimating *pAnim;
 
-<<<<<<< Updated upstream
 		pAnim = dynamic_cast<CBaseAnimating*>(pOther); //pAnim is going to be attacked
 
 		if (pAnim)
@@ -446,11 +442,6 @@ void CFlare::FlareTouch(CBaseEntity *pOther)
 			info.SetDamageForce(vTargetDir * 120);
 			pAnim->Dissolve("", gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL);*/
 
-=======
-		pAnim = dynamic_cast<CBaseAnimating*>(pOther);
-		if (pAnim)
-		{
->>>>>>> Stashed changes
 			pAnim->Ignite(30.0f);
 		}
 

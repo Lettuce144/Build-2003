@@ -525,57 +525,8 @@ void CHudCredits::DrawOutroCreditsName( void )
 		surface()->DrawSetTextPos( ( iWidth / 2 ) - ( iStringWidth / 2 ), pCredit->flYPos );
 		surface()->DrawUnicodeString( unicode );
 #endif
-<<<<<<< Updated upstream
 	}
 }
-
-#ifdef MAPBASE
-void CHudCredits::DrawOutroCreditFont( const char *pCreditName, float flYPos, vgui::HFont hTFont, const Color &cColor, int iScreenWidth, int iDivisor )
-{
-	surface()->DrawSetTextFont( hTFont );
-	surface()->DrawSetTextColor( cColor[0], cColor[1], cColor[2], cColor[3]  );
-	
-	wchar_t unicode[256];
-	
-	if ( pCreditName[0] == '#' )
-	{
-		g_pVGuiLocalize->ConstructString( unicode, sizeof(unicode), g_pVGuiLocalize->Find(pCreditName), 0 );
-	}
-	else
-	{
-		g_pVGuiLocalize->ConvertANSIToUnicode( pCreditName, unicode, sizeof( unicode ) );
-=======
->>>>>>> Stashed changes
-	}
-
-	int iStringWidth = GetStringPixelWidth( unicode, hTFont );
-
-	// ((iScreenWidth*iMultiplier) / iDivisor)
-	// When needed, just multiply iScreenWidth before sending to the function
-	surface()->DrawSetTextPos( (iScreenWidth / iDivisor) - (iStringWidth / 2), flYPos );
-	surface()->DrawUnicodeString( unicode );
-}
-
-void CHudCredits::DrawOutroCreditTexture( int iImageID, float flYPos, float flImageScale, const Color &cColor, int iScreenWidth, int iDivisor )
-{
-	int iImageWide, iImageTall;
-	surface()->DrawGetTextureSize( iImageID, iImageWide, iImageTall );
-
-	// Scale for resolution
-	flImageScale *= ((float)GetTall() / 900.0f);
-
-	iImageWide = ((float)(iImageWide) * flImageScale);
-	iImageTall = ((float)(iImageTall) * flImageScale);
-
-	iImageWide /= 2;
-	//iImageTall /= 2;
-	iScreenWidth /= iDivisor;
-
-	surface()->DrawSetColor( cColor );
-	surface()->DrawSetTexture( iImageID );
-	surface()->DrawTexturedRect( iScreenWidth - iImageWide, flYPos, iScreenWidth + iImageWide, flYPos + iImageTall );
-}
-#endif
 
 #ifdef MAPBASE
 void CHudCredits::DrawOutroCreditFont( const char *pCreditName, float flYPos, vgui::HFont hTFont, const Color &cColor, int iScreenWidth, int iDivisor )
@@ -1027,11 +978,7 @@ void CHudCredits::PrepareOutroCredits( void )
 
 				iHeight += ((float)iFontTall * pCredit->flImageScale * ((float)GetTall() / 900.0f)) + m_flSeparation;
 
-<<<<<<< Updated upstream
 				//Msg( "'%s' is image type (image scale is %f)\n", pCredit->szCreditName, pCredit->flImageScale );
-=======
-				Msg( "'%s' is image type (image scale is %f)\n", pCredit->szCreditName, pCredit->flImageScale );
->>>>>>> Stashed changes
 			}
 			else
 			{
@@ -1155,7 +1102,6 @@ void CHudCredits::PrepareIntroCredits( void )
 }
 
 #ifdef MAPBASE
-<<<<<<< Updated upstream
 void CHudCredits::PrecacheCredits()
 {
 	PrepareCredits( "OutroCreditsNames" );
@@ -1199,8 +1145,6 @@ void CHudCredits::PrecacheCredits()
 	m_CreditsList.RemoveAll();
 }
 
-=======
->>>>>>> Stashed changes
 int CHudCredits::GetOrAllocateImageID( const char *szFileName )
 {
 	int iIndex = m_ImageDict.Find( szFileName );

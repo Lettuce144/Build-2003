@@ -188,15 +188,12 @@ skipwhite:
 				token[len] = 0;
 				return data;
 			}
-<<<<<<< Updated upstream
 			else if (c != '\"' && escaped)
 			{
 				// Not an escape character, just a back slash
 				token[len] = '\\';
 				len++;
 			}
-=======
->>>>>>> Stashed changes
 
 			escaped = (c == '\\');
 			if (!escaped)

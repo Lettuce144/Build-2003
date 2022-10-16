@@ -154,11 +154,7 @@ public:
 
 	void OnEntityCreated( CBaseEntity *pEntity )
 	{
-<<<<<<< Updated upstream
 		if ( g_pScriptVM && GetScriptHookManager().IsEventHooked( "OnEntityCreated" ) )
-=======
-		if ( g_pScriptVM )
->>>>>>> Stashed changes
 		{
 			// entity
 			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
@@ -168,11 +164,7 @@ public:
 
 	void OnEntitySpawned( CBaseEntity *pEntity )
 	{
-<<<<<<< Updated upstream
 		if ( g_pScriptVM && GetScriptHookManager().IsEventHooked( "OnEntitySpawned" ) )
-=======
-		if ( g_pScriptVM )
->>>>>>> Stashed changes
 		{
 			// entity
 			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
@@ -182,11 +174,7 @@ public:
 
 	void OnEntityDeleted( CBaseEntity *pEntity )
 	{
-<<<<<<< Updated upstream
 		if ( g_pScriptVM && GetScriptHookManager().IsEventHooked( "OnEntityDeleted" ) )
-=======
-		if ( g_pScriptVM )
->>>>>>> Stashed changes
 		{
 			// entity
 			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
