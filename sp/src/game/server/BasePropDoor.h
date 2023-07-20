@@ -211,13 +211,9 @@ private:
 	string_t m_SoundOpen;
 	string_t m_SoundClose;
 
-<<<<<<< Updated upstream
-=======
 	string_t m_SoundKickOpen;
 	string_t m_SoundKickFail;
 
-
->>>>>>> Stashed changes
 #ifdef MAPBASE
 	float	m_flNPCOpenDistance;
 	Activity	m_eNPCOpenFrontActivity;

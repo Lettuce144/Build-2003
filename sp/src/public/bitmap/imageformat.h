@@ -21,11 +21,7 @@ enum NormalDecodeMode_t
 };
 
 // Forward declaration
-<<<<<<< Updated upstream
-#if defined(_WIN32) && _MSC_VER < 1900
-=======
 #if defined(_WIN32) //&& _MSC_VER < 1900
->>>>>>> Stashed changes
 typedef enum _D3DFORMAT D3DFORMAT;
 #endif
 
@@ -107,11 +103,7 @@ enum ImageFormat
 	NUM_IMAGE_FORMATS
 };
 
-<<<<<<< Updated upstream
-#if defined( POSIX  ) || defined( DX_TO_GL_ABSTRACTION ) || _MSC_VER >= 1900
-=======
 #if defined( POSIX  ) || defined( DX_TO_GL_ABSTRACTION )// || _MSC_VER >= 1900
->>>>>>> Stashed changes
 typedef enum _D3DFORMAT
 	{
 		D3DFMT_INDEX16,

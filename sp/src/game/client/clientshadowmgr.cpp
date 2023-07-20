@@ -130,11 +130,6 @@ ConVarRef mat_slopescaledepthbias_shadowmap("mat_slopescaledepthbias_shadowmap")
 ConVarRef mat_depthbias_shadowmap("mat_depthbias_shadowmap");
 #endif
 
-#ifdef MAPBASE
-ConVarRef mat_slopescaledepthbias_shadowmap( "mat_slopescaledepthbias_shadowmap" );
-ConVarRef mat_depthbias_shadowmap( "mat_depthbias_shadowmap" );
-#endif
-
 #ifdef _WIN32
 #pragma warning( disable: 4701 )
 #endif

@@ -1123,11 +1123,7 @@ void CHL2_Player::PreThink(void)
 	// Update weapon's ready status
 	UpdateWeaponPosture();
 
-<<<<<<< Updated upstream
-	// Disallow shooting while zooming
-	if ( IsX360() )
-	{
-=======
+
 	if (GetVguiMode())
 	{
 		m_nButtons &= ~(IN_ATTACK | IN_ATTACK2);
@@ -1136,7 +1132,6 @@ void CHL2_Player::PreThink(void)
 	// Disallow shooting while zooming
 	if ( IsX360() )
 	{
->>>>>>> Stashed changes
 		if ( IsZooming() )
 		{
 			if( GetActiveWeapon() && !GetActiveWeapon()->IsWeaponZoomed() )

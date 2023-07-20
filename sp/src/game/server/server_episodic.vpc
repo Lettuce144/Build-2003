@@ -48,19 +48,6 @@ $Project "Server (Episodic)"
 		$File	"$SRCDIR\game\shared\vehicle_choreo_generic_shared.h"
 		$File	"$SRCDIR\game\shared\weapon_parse_default.cpp"
 
-<<<<<<< Updated upstream
-=======
-		$Folder "ModFiles"
-		{
-			$File	"weapon_emp.cpp"
-			$File	"weapon_emp.h"
-
-			$File	"prop_electricbegin.h"
-			$File	"prop_static_electricbegin.cpp"
-			$File	"prop_static_electricend.cpp"
-		}
-
->>>>>>> Stashed changes
 		$Folder	"HL2 DLL"
 		{
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep1.cpp"
