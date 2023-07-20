@@ -29,12 +29,14 @@ protected:
 	void	DrawMotionBlur( void );
 	void	DrawFlicker( void );
 	virtual bool	InitMaterials( void );
+	void	DrawLighting(void);
 
 	Vector	m_vecLastOrigin;
 	bool	m_bEmit;
 	float	m_flRadius;
 	bool	m_bHeld;
 	bool	m_bLaunched;
+	bool	m_bLight;
 
 	IMaterial	*m_pFlickerMaterial;
 	IMaterial	*m_pBodyMaterial;

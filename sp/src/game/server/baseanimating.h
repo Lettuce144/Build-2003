@@ -58,6 +58,12 @@ public:
 	CStudioHdr *GetModelPtr( void );
 	void InvalidateMdlCache();
 
+	#ifdef GLOWS_ENABLE
+	void AddGlowEffect(void);
+	void RemoveGlowEffect(void);
+	bool IsGlowEffectActive(void);
+	#endif
+
 	virtual CStudioHdr *OnNewModel();
 
 	virtual CBaseAnimating*	GetBaseAnimating() { return this; }
@@ -164,11 +170,16 @@ public:
 	bool	HasPoseParameter( int iSequence, int iParameter );
 	float	EdgeLimitPoseParameter( int iParameter, float flValue, float flBase = 0.0f );
 
+
 protected:
 	// The modus operandi for pose parameters is that you should not use the const char * version of the functions
 	// in general code -- it causes many many string comparisons, which is slower than you think. Better is to 
 	// save off your pose parameters in member variables in your derivation of this function:
 	virtual void	PopulatePoseParameters( void );
+
+	#ifdef GLOWS_ENABLE
+		CNetworkVar(bool, m_bGlowEnabled);
+	#endif
 
 
 public:
@@ -343,6 +354,8 @@ public:
 	float				m_flGroundSpeed;	// computed linear movement rate for current sequence
 	float				m_flLastEventCheck;	// cycle index of when events were last checked
 
+
+
 	virtual void SetLightingOriginRelative( CBaseEntity *pLightingOriginRelative );
 #ifdef MAPBASE
 	void SetLightingOriginRelative( string_t strLightingOriginRelative, inputdata_t *inputdata = NULL );
@@ -383,6 +396,10 @@ private:
 	void InputSetLightingOriginRelative( inputdata_t &inputdata );
 	void InputSetLightingOrigin( inputdata_t &inputdata );
 	void InputSetModelScale( inputdata_t &inputdata );
+
+	void UpdateGlowEffect(void);
+	void DestroyGlowEffect(void);
+
 #ifdef MAPBASE
 	void InputSetModel( inputdata_t &inputdata );
 

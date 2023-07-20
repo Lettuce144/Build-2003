@@ -249,6 +249,7 @@ void *SendProxy_ClientSideAnimation( const SendProp *pProp, const void *pStruct,
 
 // SendTable stuff.
 IMPLEMENT_SERVERCLASS_ST(CBaseAnimating, DT_BaseAnimating)
+
 	SendPropInt		( SENDINFO(m_nForceBone), 8, 0 ),
 	SendPropVector	( SENDINFO(m_vecForce), -1, SPROP_NOSCALE ),
 
@@ -282,6 +283,10 @@ IMPLEMENT_SERVERCLASS_ST(CBaseAnimating, DT_BaseAnimating)
 	SendPropFloat( SENDINFO( m_fadeMinDist ), 0, SPROP_NOSCALE ),
 	SendPropFloat( SENDINFO( m_fadeMaxDist ), 0, SPROP_NOSCALE ),
 	SendPropFloat( SENDINFO( m_flFadeScale ), 0, SPROP_NOSCALE ),
+
+	#ifdef GLOWS_ENABLE
+		SendPropBool(SENDINFO(m_bGlowEnabled)),
+	#endif // GLOWS_ENABLE
 
 END_SEND_TABLE()
 
@@ -379,6 +384,10 @@ CBaseAnimating::CBaseAnimating()
 	m_fadeMaxDist = 0;
 	m_flFadeScale = 0.0f;
 	m_fBoneCacheFlags = 0;
+
+	#ifdef GLOWS_ENABLE
+		m_bGlowEnabled.Set(false);
+	#endif // GLOWS_ENABLE
 }
 
 CBaseAnimating::~CBaseAnimating()
@@ -388,6 +397,33 @@ CBaseAnimating::~CBaseAnimating()
 	UnlockStudioHdr();
 	delete m_pStudioHdr;
 }
+
+#ifdef GLOWS_ENABLE
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CBaseAnimating::AddGlowEffect(void)
+{
+	SetTransmitState(FL_EDICT_ALWAYS);
+	m_bGlowEnabled.Set(true);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CBaseAnimating::RemoveGlowEffect(void)
+{
+	m_bGlowEnabled.Set(false);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+bool CBaseAnimating::IsGlowEffectActive(void)
+{
+	return m_bGlowEnabled;
+}
+#endif
 
 void CBaseAnimating::Precache()
 {

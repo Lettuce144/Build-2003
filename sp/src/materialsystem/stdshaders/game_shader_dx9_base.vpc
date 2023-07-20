@@ -59,6 +59,12 @@ $Project
 
 		$File	"Bloom.cpp"
 		$File	"screenspace_general.cpp"
+		$File	"skydome_atmosphere.cpp"
+		$File	"skydome_atmosphere_helper.cpp"
+		$File	"skydome_atmosphere_helper.h"
+		$File	"ssao.cpp"
+		$File	"ssao_combine.cpp"
+		$File	"gaussian_blur_3x3.cpp"
 	}
 
 	$Folder	"Header Files"

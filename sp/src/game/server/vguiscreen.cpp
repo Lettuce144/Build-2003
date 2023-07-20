@@ -23,6 +23,7 @@ IMPLEMENT_SERVERCLASS_ST(CVGuiScreen, DT_VGuiScreen)
 	SendPropInt(SENDINFO(m_nAttachmentIndex), 5, SPROP_UNSIGNED ),
 	SendPropInt(SENDINFO(m_nPanelName), MAX_VGUI_SCREEN_STRING_BITS, SPROP_UNSIGNED ),
 	SendPropInt(SENDINFO(m_fScreenFlags), VGUI_SCREEN_MAX_BITS, SPROP_UNSIGNED ),
+	SendPropBool(SENDINFO(m_bIstransParent)),
 	SendPropInt(SENDINFO(m_nOverlayMaterial), MAX_MATERIAL_STRING_BITS, SPROP_UNSIGNED ),
 	SendPropEHandle(SENDINFO(m_hPlayerOwner)),
 END_SEND_TABLE();
@@ -41,6 +42,7 @@ BEGIN_DATADESC( CVGuiScreen )
 	DEFINE_FIELD( m_nAttachmentIndex, FIELD_INTEGER ),
 //	DEFINE_FIELD( m_nOverlayMaterial, FIELD_INTEGER ),
 	DEFINE_FIELD( m_fScreenFlags, FIELD_INTEGER ),
+	DEFINE_KEYFIELD (m_bIstransParent, FIELD_BOOLEAN, "istrans"),
 	DEFINE_KEYFIELD( m_flWidth, FIELD_FLOAT, "width" ),
 	DEFINE_KEYFIELD( m_flHeight, FIELD_FLOAT, "height" ),
 	DEFINE_KEYFIELD( m_strOverlayMaterial, FIELD_STRING, "overlaymaterial" ),
@@ -48,6 +50,22 @@ BEGIN_DATADESC( CVGuiScreen )
 
 	DEFINE_INPUTFUNC( FIELD_VOID, "SetActive", InputSetActive ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "SetInactive", InputSetInactive ),
+	DEFINE_OUTPUT(Output1, "Output1"),
+	DEFINE_OUTPUT(Output2, "Output2"),
+	DEFINE_OUTPUT(Output3, "Output3"),
+	DEFINE_OUTPUT(Output4, "Output4"),
+	DEFINE_OUTPUT(Output5, "Output5"),
+	DEFINE_OUTPUT(Output6, "Output6"),
+	DEFINE_OUTPUT(Output7, "Output7"),
+	DEFINE_OUTPUT(Output8, "Output8"),
+	DEFINE_OUTPUT(Output9, "Output9"),
+	DEFINE_OUTPUT(Output10, "Output10"),
+	DEFINE_OUTPUT(Output11, "Output11"),
+	DEFINE_OUTPUT(Output12, "Output12"),
+	DEFINE_OUTPUT(Output13, "Output13"),
+	DEFINE_OUTPUT(Output14, "Output14"),
+	DEFINE_OUTPUT(Output15, "Output15"),
+	DEFINE_OUTPUT(Output16, "Output16"),
 
 END_DATADESC()
 
@@ -74,7 +92,6 @@ bool CVGuiScreen::KeyValue( const char *szKeyName, const char *szValue )
 	{
 		*s = '\0';
 	}
-
 	if ( FStrEq( szKeyName, "panelname" ))
 	{
 		SetPanelName( szValue );
@@ -133,6 +150,7 @@ void CVGuiScreen::Spawn()
 	AddSolidFlags( FSOLID_NOT_SOLID );
 	SetActualSize( m_flWidth, m_flHeight );
 	m_fScreenFlags.Set( VGUI_SCREEN_ACTIVE );
+	SetTransparency(m_bIstransParent);
 
 	m_takedamage = DAMAGE_NO;
 	AddFlag( FL_NOTARGET );

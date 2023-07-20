@@ -53,6 +53,7 @@
 #include "clientmode_shared.h"
 #include "sourcevr/isourcevirtualreality.h"
 #include "client_virtualreality.h"
+#include "c_env_skydome.h"
 
 #ifdef PORTAL
 //#include "C_Portal_Player.h"
@@ -132,6 +133,8 @@ static ConVar r_skybox_use_complex_views( "r_skybox_use_complex_views", "0", FCV
 ConVar r_DrawDetailProps( "r_DrawDetailProps", "1", FCVAR_NONE, "0=Off, 1=Normal, 2=Wireframe" );
 
 ConVar r_worldlistcache( "r_worldlistcache", "1" );
+
+ConVar cr_ssao_enable("cr_ssao_enable", "1", FCVAR_ARCHIVE);
 
 //-----------------------------------------------------------------------------
 // Convars related to fog color
@@ -828,6 +831,10 @@ CLIENTEFFECT_REGISTER_BEGIN( PrecachePostProcessingEffects )
 	CLIENTEFFECT_MATERIAL( "dev/blurgaussian_3x3" )
 	CLIENTEFFECT_MATERIAL( "dev/motion_blur" )
 	CLIENTEFFECT_MATERIAL( "dev/upscale" )
+	//crossroads devtest
+	CLIENTEFFECT_MATERIAL("dev/ssao")
+	CLIENTEFFECT_MATERIAL("dev/ssaoblur")
+	CLIENTEFFECT_MATERIAL("dev/ssao_combine")
 
 #ifdef TF_CLIENT_DLL
 	CLIENTEFFECT_MATERIAL( "dev/pyro_blur_filter_y" )
@@ -1171,6 +1178,96 @@ void CViewRender::DrawViewModels( const CViewSetup &view, bool drawViewmodel )
 	pRenderContext->PopMatrix();
 }
 
+void CViewRender::DrawSky(const CViewSetup& view)
+{
+	float flRadius = 32.0f;
+	int nTheta = 8;
+	int nPhi = 8;
+
+	CMatRenderContextPtr pRenderContext(materials);
+	pRenderContext->OverrideDepthEnable(true, false);
+
+	int nTriangles = 2 * nTheta * (nPhi - 1); // Two extra degenerate triangles per row (except the last one)
+	int nIndices = 2 * (nTheta + 1) * (nPhi - 1);
+
+	pRenderContext->Bind(m_SkydomeMaterial);
+
+	CMeshBuilder meshBuilder;
+	IMesh* pMesh = pRenderContext->GetDynamicMesh();
+
+	meshBuilder.Begin(pMesh, MATERIAL_TRIANGLE_STRIP, nTriangles, nIndices);
+
+	//
+	// Build the index buffer.
+	//
+	int i, j;
+	for (i = 0; i < nPhi; ++i)
+	{
+		for (j = 0; j < nTheta; ++j)
+		{
+			float u = j / (float)(nTheta - 1);
+			float v = i / (float)(nPhi - 1);
+			float theta = 2.0f * M_PI * u;
+			float phi = M_PI * v;
+
+			Vector vecPos;
+			vecPos.x = flRadius * sin(phi) * cos(theta);
+			vecPos.y = flRadius * sin(phi) * sin(theta);
+			vecPos.z = flRadius * cos(phi);
+
+			Vector vecNormal = vecPos;
+			VectorNormalize(vecNormal);
+
+			meshBuilder.Position3f(vecPos.x, vecPos.y, vecPos.z);
+			meshBuilder.AdvanceVertex();
+		}
+	}
+
+	//
+	// Emit the triangle strips.
+	//
+	int idx = 0;
+	for (i = nPhi - 2; i >= 0; --i)
+	{
+		for (j = nTheta - 1; j >= 0; --j)
+		{
+			idx = nTheta * i + j;
+
+			meshBuilder.Index(idx + nTheta);
+			meshBuilder.AdvanceIndex();
+
+			meshBuilder.Index(idx);
+			meshBuilder.AdvanceIndex();
+		}
+
+		//
+		// Emit a degenerate triangle to skip to the next row without
+		// a connecting triangle.
+		//
+		if (i < nPhi - 2)
+		{
+			meshBuilder.Index(idx);
+			meshBuilder.AdvanceIndex();
+
+			meshBuilder.Index(idx + nTheta + 1);
+			meshBuilder.AdvanceIndex();
+		}
+	}
+
+	pRenderContext->MatrixMode(MATERIAL_MODEL);
+	pRenderContext->PushMatrix();
+	pRenderContext->LoadIdentity();
+	pRenderContext->Translate(view.origin.x, view.origin.y, view.origin.z);
+
+	meshBuilder.End();
+	pMesh->Draw();
+
+	pRenderContext->MatrixMode(MATERIAL_MODEL);
+	pRenderContext->PopMatrix();
+
+	pRenderContext->OverrideDepthEnable(false, true);
+}
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -1446,6 +1543,15 @@ bool CViewRender::UpdateShadowDepthTexture( ITexture *pRenderTarget, ITexture *p
 
 	return true;
 }
+
+void CViewRender::PushGBufferRT()
+{
+	CMatRenderContextPtr pRenderContext(materials);
+	pRenderContext->SetRenderTargetEx(1, m_NormalBuffer);
+	pRenderContext->SetRenderTargetEx(2, m_MRAOBuffer);
+	pRenderContext.SafeRelease();
+}
+
 
 //-----------------------------------------------------------------------------
 // Purpose: Renders world and all entities, etc.
@@ -1983,6 +2089,7 @@ void CViewRender::SetupMain3DView( const CViewSetup &view, int &nClearFlags )
 		render->Push3DView( view, nClearFlags, pRTColor, GetFrustum(), pRTDepth );
 	}
 
+	PushGBufferRT();
 	// If we didn't clear the depth here, we'll need to clear it later
 	nClearFlags ^= nDepthStencilFlags; // Toggle these bits
 	if ( nClearFlags & VIEW_CLEAR_COLOR )
@@ -2347,6 +2454,12 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 			m_CurrentView = currentView;
 		}
 
+	}
+
+	// Crossroads devtest SSAO
+	if (cr_ssao_enable.GetBool())
+	{
+		DoSSAO(view);
 	}
 
 	if ( mat_viewportupscale.GetBool() && mat_viewportscale.GetFloat() < 1.0f ) 
@@ -3206,9 +3319,11 @@ void CViewRender::ViewDrawScene_Intro( const CViewSetup &view, int nClearFlags, 
 		
 #ifdef MAPBASE
 		render->Push3DView( playerView, nViewFlags, NULL, GetFrustum() );
+		PushGBufferRT();
 		DrawWorldAndEntities( drawSkybox, playerView, nViewFlags );
 #else
 		render->Push3DView( playerView, VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH, NULL, GetFrustum() );
+		PushGBufferRT();
 		DrawWorldAndEntities( true /* drawSkybox */, playerView, VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH  );
 #endif
 		render->PopView( GetFrustum() );
@@ -3480,6 +3595,7 @@ bool CViewRender::DrawOneMonitor( ITexture *pRenderTarget, int cameraNum, C_Poin
 
 		Frustum frustum;
 		render->Push3DView( monitorView, nClearFlags, pRenderTarget, (VPlane *)frustum );
+		PushGBufferRT();
 
 		// if the 3d skybox world is drawn, then don't draw the normal skybox
 		CSkyboxView *pSkyView = new CSkyboxView( this );
@@ -3497,6 +3613,7 @@ bool CViewRender::DrawOneMonitor( ITexture *pRenderTarget, int cameraNum, C_Poin
 		// @MULTICORE (toml 8/11/2006): this should be a renderer....
 		Frustum frustum;
 		render->Push3DView( monitorView, VIEW_CLEAR_DEPTH, pRenderTarget, (VPlane *)frustum );
+		PushGBufferRT();
 
 		CMatRenderContextPtr pRenderContext( materials );
 		pRenderContext->PushRenderTargetAndViewport( pRenderTarget );
@@ -3516,6 +3633,7 @@ bool CViewRender::DrawOneMonitor( ITexture *pRenderTarget, int cameraNum, C_Poin
 		// @MULTICORE (toml 8/11/2006): this should be a renderer....
 		Frustum frustum;
 		render->Push3DView( monitorView, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR, pRenderTarget, (VPlane *)frustum );
+		PushGBufferRT();
 		ViewDrawScene( false, nSkyMode, monitorView, 0, VIEW_MONITOR );
 		render->PopView( frustum );
 	}
@@ -3523,6 +3641,7 @@ bool CViewRender::DrawOneMonitor( ITexture *pRenderTarget, int cameraNum, C_Poin
 	// @MULTICORE (toml 8/11/2006): this should be a renderer....
 	Frustum frustum;
  	render->Push3DView( monitorView, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR, pRenderTarget, (VPlane *)frustum );
+	PushGBufferRT();
 	ViewDrawScene( false, SKYBOX_2DSKYBOX_VISIBLE, monitorView, 0, VIEW_MONITOR );
  	render->PopView( frustum );
 #endif
@@ -4146,6 +4265,15 @@ void CRendering3dView::DrawWorld( float waterZAdjust )
 	{
 		return;
 	}
+	
+	//if ((m_DrawFlags & DF_DRAWSKYBOX) && (g_pSkyDome && g_pSkyDome->IsDynamicSkyEnabled()))
+	//{
+	//	m_DrawFlags &= ~DF_DRAWSKYBOX; // dont render engine sky, we have our own sky now
+
+	//	m_pMainView->DrawSky(*this);
+	//}
+
+	
 
 	unsigned long engineFlags = BuildEngineDrawWorldListFlags( m_DrawFlags );
 
@@ -5430,6 +5558,7 @@ void CSkyboxView::DrawInternal( view_id_t iSkyBoxViewID, bool bInvokePreAndPostR
 	render->ViewSetupVis( false, 1, &m_pSky3dParams->origin.Get() );
 #endif
 	render->Push3DView( (*this), m_ClearFlags, pRenderTarget, GetFrustum(), pDepthTarget );
+	m_pMainView->PushGBufferRT();
 
 	// Store off view origin and angles
 	SetupCurrentView( origin, angles, iSkyBoxViewID );
@@ -6941,6 +7070,7 @@ void CReflectiveGlassView::PushView( float waterHeight )
 #else
 	render->Push3DView( *this, m_ClearFlags, GetWaterReflectionTexture(), GetFrustum() );
 #endif
+	m_pMainView->PushGBufferRT();
 	 
 	Vector4D plane;
 	VectorCopy( m_ReflectionPlane.normal, plane.AsVector3D() );
@@ -7027,6 +7157,7 @@ void CRefractiveGlassView::PushView( float waterHeight )
 #else
 	render->Push3DView( *this, m_ClearFlags, GetWaterRefractionTexture(), GetFrustum() );
 #endif
+	m_pMainView->PushGBufferRT();
 
 	Vector4D plane;
 	VectorMultiply( m_ReflectionPlane.normal, -1, plane.AsVector3D() );

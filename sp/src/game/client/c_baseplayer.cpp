@@ -1209,10 +1209,15 @@ void C_BasePlayer::DetermineVguiInputMode( CUserCmd *pCmd )
 	}
 }
 
+bool C_BasePlayer::CreateMove(float flInputSampleTime, CUserCmd* pCmd)
+{
+	return CreateMove(flInputSampleTime, pCmd, false);
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Input handling
 //-----------------------------------------------------------------------------
-bool C_BasePlayer::CreateMove( float flInputSampleTime, CUserCmd *pCmd )
+bool C_BasePlayer::CreateMove( float flInputSampleTime, CUserCmd *pCmd, bool bVguiUpdate )
 {
 	// Allow the vehicle to clamp the view angles
 	if ( IsInAVehicle() )
@@ -1265,13 +1270,33 @@ bool C_BasePlayer::CreateMove( float flInputSampleTime, CUserCmd *pCmd )
 
 	m_vecOldViewAngles = pCmd->viewangles;
 	
+	if (bVguiUpdate)
+	{
+		bool TempVguiMode = IsInVGuiInputMode();
+
+		DetermineVguiInputMode(pCmd);
+
+		if (TempVguiMode == !IsInVGuiInputMode())
+		{
+			if (IsInVGuiInputMode())
+			{
+				engine->ClientCmd("vguimode_true");
+			}
+			else
+			{
+				engine->ClientCmd("vguimode_false");
+			}
+		}
+	}
+
 	// Check to see if we're in vgui input mode...
+	/*
 #ifdef VGUI_SCREEN_FIX
 	if(pCmd->buttons & IN_VALIDVGUIINPUT)
 		DetermineVguiInputMode( pCmd );
 #else
 	DetermineVguiInputMode( pCmd );
-#endif
+#endif*/
 
 	return true;
 }

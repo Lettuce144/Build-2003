@@ -1123,9 +1123,20 @@ void CHL2_Player::PreThink(void)
 	// Update weapon's ready status
 	UpdateWeaponPosture();
 
+<<<<<<< Updated upstream
 	// Disallow shooting while zooming
 	if ( IsX360() )
 	{
+=======
+	if (GetVguiMode())
+	{
+		m_nButtons &= ~(IN_ATTACK | IN_ATTACK2);
+	}
+
+	// Disallow shooting while zooming
+	if ( IsX360() )
+	{
+>>>>>>> Stashed changes
 		if ( IsZooming() )
 		{
 			if( GetActiveWeapon() && !GetActiveWeapon()->IsWeaponZoomed() )
@@ -3623,6 +3634,16 @@ void CHL2_Player::UpdateWeaponPosture( void )
 		UTIL_TraceLine( EyePosition(), EyePosition() + vecAim * CHECK_FRIENDLY_RANGE, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
 
 		CBaseEntity *aimTarget = tr.m_pEnt;
+
+		if (GetVguiMode())
+		{
+			if (Weapon_Lower() == false)
+			{
+				
+			}
+
+			return;
+		}
 
 		//If we're over something
 		if (  aimTarget && !tr.DidHitWorld() )

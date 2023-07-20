@@ -84,6 +84,7 @@ extern ConVar sensitivity;
 #endif
 
 ConVar zoom_sensitivity_ratio( "zoom_sensitivity_ratio", "1.0", 0, "Additional mouse sensitivity scale factor applied when FOV is zoomed in." );
+ConVar cl_camera_anim_intensity("cl_camera_anim_intensity", "1.0", FCVAR_ARCHIVE, "intensity of the cammera animation");
 
 CViewRender g_DefaultViewRender;
 IViewRender *view = NULL;	// set in cldll_client_init.cpp if no mod creates their own
@@ -307,7 +308,9 @@ void CViewRender::Init( void )
 
 	m_TranslucentSingleColor.Init( "debug/debugtranslucentsinglecolor", TEXTURE_GROUP_OTHER );
 	m_ModulateSingleColor.Init( "engine/modulatesinglecolor", TEXTURE_GROUP_OTHER );
-	
+	m_SkydomeMaterial.Init("shaders/skydome", TEXTURE_GROUP_MODEL);
+
+
 	extern CMaterialReference g_material_WriteZ;
 	g_material_WriteZ.Init( "engine/writez", TEXTURE_GROUP_OTHER );
 
@@ -323,6 +326,30 @@ void CViewRender::Init( void )
 #if defined( CSTRIKE_DLL )
 	m_flLastFOV = default_fov.GetFloat();
 #endif
+
+	int iW, iH;
+	materials->GetBackBufferDimensions(iW, iH);
+	materials->BeginRenderTargetAllocation();
+	materials->CreateNamedRenderTargetTextureEx("_rt_SSAO", iW, iH, RT_SIZE_NO_CHANGE, materials->GetBackBufferFormat(),
+		MATERIAL_RT_DEPTH_NONE, TEXTUREFLAGS_NOMIP | TEXTUREFLAGS_NOLOD | TEXTUREFLAGS_RENDERTARGET, 0);
+	
+	m_NormalBuffer = materials->CreateNamedRenderTargetTextureEx(
+		"_rt_Normals",
+		iW, iH, RT_SIZE_FULL_FRAME_BUFFER,
+		IMAGE_FORMAT_RGBA16161616F,
+		MATERIAL_RT_DEPTH_SHARED,
+		TEXTUREFLAGS_NOMIP | TEXTUREFLAGS_NOLOD | TEXTUREFLAGS_RENDERTARGET,
+		0);
+	m_MRAOBuffer = materials->CreateNamedRenderTargetTextureEx(
+		"_rt_MRAO",
+		iW, iH, RT_SIZE_FULL_FRAME_BUFFER,
+		IMAGE_FORMAT_RGBA16161616F,
+		MATERIAL_RT_DEPTH_SHARED,
+		TEXTUREFLAGS_NOMIP | TEXTUREFLAGS_NOLOD | TEXTUREFLAGS_RENDERTARGET,
+		0);
+
+	
+	materials->EndRenderTargetAllocation();
 
 }
 
@@ -348,6 +375,8 @@ void CViewRender::LevelInit( void )
 
 	// Init all IScreenSpaceEffects
 	g_pScreenSpaceEffects->InitScreenSpaceEffects( );
+
+	g_pScreenSpaceEffects->EnableScreenSpaceEffect("ssr");
 }
 
 //-----------------------------------------------------------------------------
@@ -356,6 +385,8 @@ void CViewRender::LevelInit( void )
 void CViewRender::LevelShutdown( void )
 {
 	g_pScreenSpaceEffects->ShutdownScreenSpaceEffects( );
+
+	g_pScreenSpaceEffects->DisableScreenSpaceEffect("ssr");
 }
 
 //-----------------------------------------------------------------------------
@@ -1280,6 +1311,40 @@ void CViewRender::Render( vrect_t *rect )
 		{
 			// we should use the monitor view from the left eye for both eyes
 			flags |= RENDERVIEW_SUPPRESSMONITORRENDERING;
+		}
+
+		//--------------------------------
+		// Handle camera anims
+		//--------------------------------
+
+		if (!UseVR() && pPlayer && cl_camera_anim_intensity.GetFloat() > 0)
+		{
+			if (pPlayer->GetViewModel(0))
+			{
+				int attachment = pPlayer->GetViewModel(0)->LookupAttachment("camera");
+				if (attachment != -1)
+				{
+					
+
+					int rootBone = pPlayer->GetViewModel(0)->LookupAttachment("camera_root");
+					Vector cameraOrigin = Vector(0, 0, 0);
+					QAngle cameraAngles = QAngle(0, 0, 0);
+					Vector rootOrigin = Vector(0, 0, 0);
+					QAngle rootAngles = QAngle(0, 0, 0);
+
+					pPlayer->GetViewModel(0)->GetAttachmentLocal(attachment, cameraOrigin, cameraAngles);
+					if (rootBone != -1)
+					{
+						pPlayer->GetViewModel(0)->GetAttachmentLocal(rootBone, rootOrigin, rootAngles);
+						cameraOrigin -= rootOrigin;
+						cameraAngles -= rootAngles;
+
+						//DevMsg("camera attachment found\n");
+					}
+					view.angles += cameraAngles * cl_camera_anim_intensity.GetFloat();
+					view.origin += cameraOrigin * cl_camera_anim_intensity.GetFloat();
+				}
+			}
 		}
 
 	    RenderView( view, nClearFlags, flags );

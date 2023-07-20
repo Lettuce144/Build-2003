@@ -74,6 +74,8 @@
 #include "vote_controller.h"
 #include "ai_speech.h"
 
+#include "vguiscreen.h"
+
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
 #endif
@@ -5358,6 +5360,8 @@ void CBasePlayer::Spawn( void )
 	UpdateLastKnownArea();
 
 	m_weaponFiredTimer.Invalidate();
+
+	SetVguiMode(false);
 }
 
 void CBasePlayer::Activate( void )
@@ -6923,7 +6927,400 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 		}
 		return true;
 	}
-
+	else if(stricmp(cmd,"vguimode_true") == 0)
+	{
+		SetVguiMode(true);
+		return true;
+	}
+	else if (stricmp(cmd, "vguimode_false") == 0)
+	{
+		SetVguiMode(false);
+		return false;
+	}
+	else if (stricmp(cmd, "out1") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output1.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out2") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output2.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out3") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output3.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out4") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output4.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out5") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output5.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out6") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output6.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out7") == 0)
+	{
+	int entindex = atoi(args[1]);
+	if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output7.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out8") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output8.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out9") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output9.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out10") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output10.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out11") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output11.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out12") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output12.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out13") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output13.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out14") == 0)
+	{
+	int entindex = atoi(args[1]);
+	if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output14.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out15") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output15.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
+	else if (stricmp(cmd, "out16") == 0)
+	{
+		int entindex = atoi(args[1]);
+		if (entindex)
+		{
+			IHandleEntity* hEnt = gEntList.LookupEntityByNetworkIndex(entindex);
+			if (hEnt)
+			{
+				CVGuiScreen* screen = (CVGuiScreen*)gEntList.LookupEntity(hEnt->GetRefEHandle());
+				if (screen)
+				{
+					if (screen->entindex() == entindex)
+					{
+						screen->Output16.FireOutput(this, NULL);
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			Warning("No ent index specified for VGUI output\n");
+		}
+	}
 	return false;
 }
 

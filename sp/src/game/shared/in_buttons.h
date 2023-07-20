@@ -13,7 +13,7 @@
 
 #ifdef MAPBASE
 // That one article on the VDC.
-//#define VGUI_SCREEN_FIX 1
+#define VGUI_SCREEN_FIX 1
 #endif
 
 #define IN_ATTACK		(1 << 0)
@@ -44,7 +44,7 @@
 #define	IN_ATTACK3		(1 << 25)
 
 #ifdef VGUI_SCREEN_FIX
-#define IN_VALIDVGUIINPUT		    (1 << 23) //bitflag for vgui fix
+#define IN_VALIDVGUIINPUT		    (1 << 26) //bitflag for vgui fix
 #endif
 
 #endif // IN_BUTTONS_H

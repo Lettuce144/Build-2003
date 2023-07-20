@@ -16,6 +16,8 @@
 #include "view.h"
 #include "view_scene.h"
 #include "beamdraw.h"
+#include "iefx.h"
+#include "dlight.h"
 
 // Precache our effects
 CLIENTEFFECT_REGISTER_BEGIN( PrecacheEffectCombineBall )
@@ -43,6 +45,9 @@ C_PropCombineBall::C_PropCombineBall( void )
 	m_pFlickerMaterial = NULL;
 	m_pBodyMaterial = NULL;
 	m_pBlurMaterial = NULL;
+
+	// We can emit light
+	m_bLight = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -161,6 +166,39 @@ void C_PropCombineBall::DrawFlicker( void )
 	DrawHalo( m_pFlickerMaterial, GetAbsOrigin(), m_flRadius * rand2, color );
 }
 
+
+
+void C_PropCombineBall::DrawLighting(void)
+{
+	if(m_bLight)
+	{
+		dlight_t* dl = effects->CL_AllocDlight(index);
+
+		//168, 222, 255 for combine ball
+
+		dl->origin = GetAbsOrigin();
+
+		dl->color.r = 168;
+		dl->color.g = 222.0f;
+		dl->color.b = 255.0f;
+
+		dl->die = gpGlobals->curtime + 0.1f;
+
+		dl->radius = random->RandomFloat(260.0f, 290.0f);
+
+
+		dlight_t* el = effects->CL_AllocElight(index);
+
+		el->origin = GetAbsOrigin();
+		el->color.r = 168;
+		el->color.g = 222.0f;
+		el->color.b = 255.0f;
+		el->radius = random->RandomFloat(260.0f, 290.0f);
+		el->die = gpGlobals->curtime + 0.1f;
+
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : pMaterial - 
@@ -248,6 +286,12 @@ int C_PropCombineBall::DrawModel( int flags )
 	if ( m_bHeld || m_bLaunched )
 	{
 		DrawMotionBlur();
+	}
+
+	//Make sure we have our light enabled, then draw the light
+	if (m_bLight)
+	{
+		DrawLighting();
 	}
 
 	// Draw the model if we're being held

@@ -38,8 +38,8 @@ extern vgui::IInputInternal *g_InputInternal;
 #define VGUI_SCREEN_MODE_RADIUS	80
 
 //Precache the materials
-CLIENTEFFECT_REGISTER_BEGIN( PrecacheEffectVGuiScreen )
-CLIENTEFFECT_MATERIAL( "engine/writez" )
+CLIENTEFFECT_REGISTER_BEGIN(PrecacheEffectVGuiScreen)
+CLIENTEFFECT_MATERIAL("engine/writez")
 CLIENTEFFECT_REGISTER_END()
 
 
@@ -47,6 +47,7 @@ CLIENTEFFECT_REGISTER_END()
 // This is a cache of preloaded keyvalues.
 // ----------------------------------------------------------------------------- // 
 
+CUtlVector<C_VGuiScreen*> g_pVguiScreens;
 CUtlDict<KeyValues*, int> g_KeyValuesCache;
 
 KeyValues* CacheKeyValuesForFile( const char *pFilename )
@@ -81,6 +82,7 @@ IMPLEMENT_CLIENTCLASS_DT(C_VGuiScreen, DT_VGuiScreen, CVGuiScreen)
 	RecvPropFloat( RECVINFO(m_flWidth) ),
 	RecvPropFloat( RECVINFO(m_flHeight) ),
 	RecvPropInt( RECVINFO(m_fScreenFlags) ),
+	RecvPropBool( RECVINFO(m_bIstransParent) ),
 	RecvPropInt( RECVINFO(m_nPanelName) ),
 	RecvPropInt( RECVINFO(m_nAttachmentIndex) ),
 	RecvPropInt( RECVINFO(m_nOverlayMaterial) ),
@@ -102,11 +104,13 @@ C_VGuiScreen::C_VGuiScreen()
 
 	m_WriteZMaterial.Init( "engine/writez", TEXTURE_GROUP_VGUI );
 	m_OverlayMaterial.Init( m_WriteZMaterial );
+	g_pVguiScreens.AddToTail(this);
 }
 
 C_VGuiScreen::~C_VGuiScreen()
 {
 	DestroyVguiScreen();
+	g_pVguiScreens.FindAndRemove(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -416,6 +420,7 @@ void C_VGuiScreen::ClientThink( void )
 	int px = (int)(u * m_nPixelWidth + 0.5f);
 	int py = (int)(v * m_nPixelHeight + 0.5f);
 
+
 	// Generate mouse input commands
 	if ((px != m_nOldPx) || (py != m_nOldPy))
 	{
@@ -444,6 +449,24 @@ void C_VGuiScreen::ClientThink( void )
 		g_InputInternal->SetMouseCodeState( MOUSE_RIGHT, vgui::BUTTON_RELEASED );
 		g_InputInternal->InternalMouseReleased( MOUSE_RIGHT );
 	}
+
+	for (int i = 0; i < pPanel->GetChildCount(); i++)
+	{
+		vgui::Button* child = dynamic_cast<vgui::Button*>(pPanel->GetChild(i));
+		if (child)
+		{
+			int x1, x2, y1, y2;
+			child->GetBounds(x1, y1, x2, y2);
+
+			// Generate mouse input commands
+			if ((m_nButtonState & IN_ATTACK))
+			{
+				if (px >= x1 && px <= x1 + x2 && py >= y1 && py <= y1 + y2)
+					child->FireActionSignal();
+			}
+		}
+	}
+
 
 	if ( m_bLoseThinkNextFrame == true )
 	{
@@ -582,6 +605,9 @@ int	C_VGuiScreen::DrawModel( int flags )
 	if (IsBackfacing(CurrentViewOrigin()))
 		return 0;
 
+	if (m_bIstransParent)
+		IsTransparent();
+
 	// Recompute the panel-to-world center
 	// FIXME: Can this be cached off?
 	ComputePanelToWorld();
@@ -705,16 +731,17 @@ C_BaseEntity *FindNearbyVguiScreen( const Vector &viewPosition, const QAngle &vi
 	lookRay.Init( viewPosition, lookEnd );
 
 	// Look for vgui screens that are close to the player
-	CVGuiScreenEnumerator localScreens;
-	partition->EnumerateElementsInSphere( PARTITION_CLIENT_NON_STATIC_EDICTS, viewPosition, VGUI_SCREEN_MODE_RADIUS, false, &localScreens );
+	//CVGuiScreenEnumerator localScreens;
+	//partition->EnumerateElementsInSphere( PARTITION_CLIENT_NON_STATIC_EDICTS, viewPosition, VGUI_SCREEN_MODE_RADIUS, false, &localScreens );
 
 	Vector vecOut, vecViewDelta;
 
 	float flBestDist = 2.0f;
 	C_VGuiScreen *pBestScreen = NULL;
-	for (int i = localScreens.GetScreenCount(); --i >= 0; )
+	for (int i = 0; i < g_pVguiScreens.Count(); i++)
 	{
-		C_VGuiScreen *pScreen = localScreens.GetVGuiScreen(i);
+		//C_VGuiScreen *pScreen = localScreens.GetVGuiScreen(i);
+		C_VGuiScreen* pScreen = g_pVguiScreens[i];
 
 		if ( pScreen->IsAttachedToViewModel() )
 			continue;
@@ -867,6 +894,34 @@ vgui::Panel *CVGuiScreenPanel::CreateControlByName(const char *controlName)
 //-----------------------------------------------------------------------------
 void CVGuiScreenPanel::OnCommand( const char *command)
 {
+	if (stricmp(command, "out1") == 0
+		|| stricmp(command, "out2") == 0
+		|| stricmp(command, "out3") == 0
+		|| stricmp(command, "out4") == 0
+		|| stricmp(command, "out5") == 0
+		|| stricmp(command, "out6") == 0
+		|| stricmp(command, "out7") == 0
+		|| stricmp(command, "out8") == 0
+		|| stricmp(command, "out9") == 0
+		|| stricmp(command, "out10") == 0
+		|| stricmp(command, "out11") == 0
+		|| stricmp(command, "out12") == 0
+		|| stricmp(command, "out13") == 0
+		|| stricmp(command, "out14") == 0
+		|| stricmp(command, "out15") == 0
+		|| stricmp(command, "out16") == 0)
+	{
+		char entindex[8];
+		itoa(this->GetEntity()->entindex(), entindex, 10); //Radix is base 10 (decimal)
+		char newcommand[16] = { ' ' };
+		strcat(newcommand, command);
+		strcat(newcommand, " ");
+		strcat(newcommand, entindex);
+		engine->ClientCmd_Unrestricted(const_cast<char*>(newcommand));
+		BaseClass::OnCommand(newcommand);
+		return;
+	}
+
 	if ( Q_stricmp( command, "vguicancel" ) )
 	{
 		engine->ClientCmd( const_cast<char *>( command ) );

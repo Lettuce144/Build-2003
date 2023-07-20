@@ -51,7 +51,7 @@ $Configuration
 	{
 		$OutputDirectory		".\$GAMENAME"		[$OSXALL]
 	}
-	
+
 	$Compiler
 	{
 		$AdditionalIncludeDirectories	"$BASE;.\;$SRCDIR\game\shared;$SRCDIR\utils\common;$SRCDIR\game\shared\econ;$SRCDIR\game\server\NextBot"
@@ -75,11 +75,11 @@ $Project
 	{
 		$File	"gamedll_replay.cpp"
 		$File	"$SRCDIR\common\replay\ireplaysessionrecorder.h"
-		
+
 		$File	"$SRCDIR\game\shared\replay_gamestats_shared.cpp"	[$BUILD_REPLAY]
 		$File	"$SRCDIR\game\shared\replay_gamestats_shared.h"	[$BUILD_REPLAY]
 	}
-	
+
 	$Folder	"Source Files"
 	{
 		$File	"$SRCDIR\game\shared\achievement_saverestore.cpp"
@@ -677,6 +677,7 @@ $Project
 		//Haptics
 		$File	"$SRCDIR\public\haptics\haptic_msgs.cpp"
 		$File	"$SRCDIR\public\haptics\haptic_utils.cpp"	[$WIN32]
+		$file	"env_skydome.cpp"
 
 		// Not using precompiled header cbase.h
 
@@ -1017,8 +1018,8 @@ $Project
 		$File	"toolframework_server.cpp"
 		$File	"toolframework_server.h"
 	}
-	
-	$Folder	"Link Libraries" 
+
+	$Folder	"Link Libraries"
 	{
 		$Lib	choreoobjects
 		$Lib	dmxloader

@@ -155,6 +155,7 @@ private:
 	int m_nOldOverlayMaterial;
 
 	bool m_bLoseThinkNextFrame;
+	bool m_bIstransParent;
 
 	bool	m_bAcceptsInput;
 

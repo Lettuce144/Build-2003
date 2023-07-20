@@ -380,6 +380,7 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	iDefaultClip2 = 0;
 	iWeight = 0;
 	iRumbleEffect = -1;
+	iWeaponLength = 0;
 	bAutoSwitchTo = false;
 	bAutoSwitchFrom = false;
 	iFlags = 0;
@@ -449,6 +450,15 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 
 	iRumbleEffect = pKeyValuesData->GetInt( "rumble", -1 );
 	
+	// im still not sure if "Collision" is the right name for it
+	if (KeyValues* kvCollision = pKeyValuesData->FindKey("Collision"))
+	{
+		UTIL_StringToVector(vCollisionOffset.Base(), kvCollision->GetString("Offset", "0 0 0"));
+		UTIL_StringToVector(angCollisionRotation.Base(), kvCollision->GetString("Rotation", "0 0 0"));
+		iWeaponLength = kvCollision->GetInt("Length", 0);
+	}
+
+
 	// LAME old way to specify item flags.
 	// Weapon scripts should use the flag names.
 	iFlags = pKeyValuesData->GetInt( "item_flags", ITEM_FLAG_LIMITINWORLD );

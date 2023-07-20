@@ -312,6 +312,10 @@ public:
 	virtual void			Jump( void );
 	virtual void			Duck( void );
 
+	bool					m_pVGUImode;
+	bool					GetVguiMode(void) { return m_pVGUImode; }
+	bool					SetVguiMode(bool newmode) { return m_pVGUImode = newmode; }
+
 	const char				*GetTracerType( void );
 	void					MakeTracer( const Vector &vecTracerSrc, const trace_t &tr, int iTracerType );
 	void					DoImpactEffect( trace_t &tr, int nDamageType );

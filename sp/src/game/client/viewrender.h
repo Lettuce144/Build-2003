@@ -438,6 +438,10 @@ public:
 	{
 		m_UnderWaterOverlayMaterial.Init( pMaterial );
 	}
+
+	void			DrawSky(const CViewSetup& view);
+
+	void			PushGBufferRT();
 private:
 	int				m_BuildWorldListsNumber;
 
@@ -461,6 +465,8 @@ private:
 	bool			ShouldDrawViewModel( bool drawViewmodel );
 	void			DrawViewModels( const CViewSetup &view, bool drawViewmodel );
 
+	
+	
 	void			PerformScreenSpaceEffects( int x, int y, int w, int h );
 
 	// Overlays
@@ -523,6 +529,11 @@ private:
 	bool m_bUsingIndexedScreenOverlays;
 #endif
 	CMaterialReference m_UnderWaterOverlayMaterial;
+	CMaterialReference	m_SkydomeMaterial;
+
+	ITexture* m_NormalBuffer;
+	ITexture* m_MRAOBuffer;
+
 
 	Vector			m_vecLastFacing;
 	float			m_flCheapWaterStartDistance;

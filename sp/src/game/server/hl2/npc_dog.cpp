@@ -235,7 +235,7 @@ ConVar dog_debug( "dog_debug", "0" );
 //-----------------------------------------------------------------------------
 Class_T	CNPC_Dog::Classify ( void )
 {
-	return	CLASS_PLAYER_ALLY_VITAL;
+	return	CLASS_PLAYER_ALLY;
 }
 
 bool CNPC_Dog::CreateBehaviors( void )

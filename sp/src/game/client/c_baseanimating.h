@@ -26,6 +26,9 @@
 #include "ragdoll_shared.h"
 #include "tier0/threadtools.h"
 #include "datacache/idatacache.h"
+#ifdef GLOWS_ENABLE
+#include "glow_outline_effect.h"
+#endif // GLOWS_ENABLE
 
 #define LIPSYNC_POSEPARAM_NAME "mouth"
 #define NUM_HITBOX_FIRES	10
@@ -155,6 +158,11 @@ public:
 	virtual bool OnPostInternalDrawModel( ClientModelRenderInfo_t *pInfo );
 	void		DoInternalDrawModel( ClientModelRenderInfo_t *pInfo, DrawModelState_t *pState, matrix3x4_t *pBoneToWorldArray = NULL );
 
+	#ifdef GLOWS_ENABLE
+		CGlowObject* GetGlowObject(void) { return m_pGlowEffect; }
+		virtual void		GetGlowEffectColor(float* r, float* g, float* b);
+	#endif // GLOWS_ENABLE
+	
 	//
 	virtual CMouthInfo *GetMouth();
 	virtual void	ControlMouth( CStudioHdr *pStudioHdr );
@@ -461,6 +469,11 @@ public:
 
 	virtual bool					IsViewModel() const;
 
+#ifdef GLOWS_ENABLE	
+	virtual void		UpdateGlowEffect(void);
+	virtual void		DestroyGlowEffect(void);
+#endif // GLOWS_ENABLE
+
 #ifdef MAPBASE_VSCRIPT
 	int		ScriptLookupAttachment( const char *pAttachmentName ) { return LookupAttachment( pAttachmentName ); }
 	const Vector& ScriptGetAttachmentOrigin(int iAttachment);
@@ -477,6 +490,12 @@ public:
 	int		ScriptGetSequenceActivity( int iSequence ) { return GetSequenceActivity( iSequence ); }
 	float	ScriptGetSequenceMoveDist( int iSequence ) { return GetSequenceMoveDist( GetModelPtr(), iSequence ); }
 	int		ScriptSelectWeightedSequence( int activity ) { return SelectWeightedSequence( (Activity)activity ); }
+
+#ifdef GLOWS_ENABLE
+	bool				m_bGlowEnabled;
+	bool				m_bOldGlowEnabled;
+	CGlowObject* m_pGlowEffect;
+#endif // GLOWS_ENABLE
 
 	// For VScript
 	int		ScriptGetSkin() { return GetSkin(); }

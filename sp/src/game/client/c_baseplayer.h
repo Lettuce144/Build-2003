@@ -135,7 +135,8 @@ public:
 	void					SetSuitUpdate(const char *name, int fgroup, int iNoRepeat);
 
 	// Input handling
-	virtual bool	CreateMove( float flInputSampleTime, CUserCmd *pCmd );
+	virtual bool	CreateMove( float flInputSampleTime, CUserCmd *pCmd, bool bVguiUpdate);
+	virtual bool	CreateMove( float flInputSampleTime, CUserCmd *pCmd);
 	virtual void	AvoidPhysicsProps( CUserCmd *pCmd );
 	
 	virtual void	PlayerUse( void );

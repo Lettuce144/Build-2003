@@ -303,6 +303,12 @@ public:
 	bool				IsIlluminatedByFlashlight( CBaseEntity *pEntity, float *flReturnDot );
 	void				SetFlashlightPowerDrainScale( float flScale ) { m_flFlashlightPowerDrainScale = flScale; }
 
+	// Kicking stuff
+	void				KickAttack(void);
+	CNetworkVar(float, m_flNextKickAttack);
+	CNetworkVar(bool, m_bIsKicking);
+
+
 	// Underwater breather device
 	virtual void		SetPlayerUnderwater( bool state );
 	virtual bool		CanBreatheUnderwater() const { return m_HL2Local.m_flSuitPower > 0.0f; }

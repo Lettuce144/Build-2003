@@ -97,6 +97,7 @@ public:
 	int						iDefaultClip2;							// amount of secondary ammo in the gun when it's created
 	int						iWeight;								// this value used to determine this weapon's importance in autoselection.
 	int						iRumbleEffect;							// Which rumble effect to use when fired? (xbox)
+	int						iWeaponLength;
 	bool					bAutoSwitchTo;							// whether this weapon should be considered for autoswitching to
 	bool					bAutoSwitchFrom;						// whether this weapon can be autoswitched away from when picking up another weapon or ammo
 	int						iFlags;									// miscellaneous weapon flags
@@ -109,6 +110,10 @@ public:
 	int						iAmmoType;
 	int						iAmmo2Type;
 	bool					m_bMeleeWeapon;		// Melee weapons can always "fire" regardless of ammo.
+
+	Vector		vCollisionOffset;
+	QAngle		angCollisionRotation;
+
 
 	// This tells if the weapon was built right-handed (defaults to true).
 	// This helps cl_righthand make the decision about whether to flip the model or not.
